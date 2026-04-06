@@ -1,9 +1,24 @@
+import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import Layout from '../components/Layout'
+import { TEST_IDS } from '../test-ids'
+
 function NotFoundPage() {
-    return (
-        <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-            <h1 className="text-4xl font-bold text-red-400">404 - Not Found</h1>
-        </div>
-    )
+  const { t } = useTranslation()
+
+  return (
+    <Layout>
+      <div className="flex flex-col items-center justify-center py-24" data-testid={TEST_IDS.notFoundPage.root}>
+        <h1 className="text-6xl font-bold text-red-400 mb-4" data-testid={TEST_IDS.notFoundPage.title}>
+          {t('notFound.title')}
+        </h1>
+        <p className="text-gray-400 text-xl mb-8">{t('notFound.subtitle')}</p>
+        <Link to="/" className="text-blue-400 hover:text-blue-300 underline">
+          {t('notFound.back')}
+        </Link>
+      </div>
+    </Layout>
+  )
 }
 
 export default NotFoundPage

@@ -1,0 +1,35 @@
+{
+  "header": {
+    "title": "AQA Notes 🚀",
+    "searchLabel": "Search"
+  },
+  "home": {
+    "title": "Knowledge Base",
+    "subtitle": "AQA patterns, tools, and best practices"
+  },
+  "category": {
+    "back": "← Back",
+    "subtitle": "Notes in this category",
+    "empty": "No notes in this category yet.",
+    "notFound": "Category not found."
+  },
+  "note": {
+    "notFound": "Note not found"
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search notes by title, content, or tag…",
+    "results_one": "{{count}} result for \"{{query}}\"",
+    "results_other": "{{count}} results for \"{{query}}\"",
+    "noResults": "No results found for \"{{query}}\""
+  },
+  "notFound": {
+    "title": "404",
+    "subtitle": "Page not found",
+    "back": "← Back to home"
+  },
+  "categoryCard": {
+    "noteCount_one": "{{count}} note",
+    "noteCount_other": "{{count}} notes"
+  }
+}

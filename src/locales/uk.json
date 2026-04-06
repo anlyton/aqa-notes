@@ -1,0 +1,76 @@
+{
+  "data": {
+    "categories": {
+      "web":         { "title": "Веб-автоматизація",        "description": "Playwright, Selenium, Cypress" },
+      "mobile":      { "title": "Мобільна автоматизація",   "description": "Detox, Maestro, Appium" },
+      "api":         { "title": "API / Бекенд",             "description": "REST, GraphQL, Postman" },
+      "performance": { "title": "Продуктивність",           "description": "k6, Lighthouse, WebPageTest" },
+      "cicd":        { "title": "CI/CD та інфраструктура",  "description": "GitHub Actions, Docker, Runners" },
+      "test-design": { "title": "Дизайн тестів",            "description": "Патерни, POM, стратегії" },
+      "tools":       { "title": "Інструменти та різне",     "description": "Git, TypeScript, налагодження" },
+      "security":    { "title": "Тестування безпеки",       "description": "OWASP, ZAP, тестування автентифікації" }
+    },
+    "notes": {
+      "playwright-selectors":           { "title": "Найкращі практики селекторів Playwright",              "description": "Як писати стійкі та зручні у обслуговуванні локатори в Playwright." },
+      "playwright-page-objects":        { "title": "Page Object Model у Playwright",                        "description": "Структурування тестів Playwright за допомогою патерну Page Object Model." },
+      "playwright-network-interception":{ "title": "Перехоплення та мокування мережі в Playwright",        "description": "Перехоплення, мокування та заглушення мережевих запитів для ізоляції UI-тестів." },
+      "detox-getting-started":          { "title": "Початок роботи з Detox",                               "description": "Налаштування Detox для end-to-end тестування React Native на iOS та Android." },
+      "maestro-flows":                  { "title": "Написання тестових потоків з Maestro",                 "description": "Використання YAML-потоків Maestro для швидких та читабельних мобільних UI-тестів." },
+      "mobile-testing-strategies":      { "title": "Стратегії мобільного тестування",                     "description": "Практичні стратегії для ефективного покриття мобільних тестів." },
+      "rest-api-testing":               { "title": "Основи тестування REST API",                           "description": "Ключові принципи та техніки для ефективного тестування REST API." },
+      "graphql-testing":                { "title": "Тестування GraphQL API",                              "description": "Стратегії та інструменти для тестування GraphQL-запитів, мутацій та підписок." },
+      "api-authentication-testing":     { "title": "Тестування автентифікації та авторизації API",         "description": "Комплексне тестування auth-потоків, сесій та контролю доступу в API." },
+      "k6-load-testing":                { "title": "Навантажувальне тестування з k6",                     "description": "Написання та запуск навантажувальних тестів з реалістичними сценаріями трафіку." },
+      "lighthouse-performance-audits":  { "title": "Аудит продуктивності з Lighthouse",                   "description": "Автоматизація аудитів Lighthouse в CI для виявлення регресій продуктивності." },
+      "github-actions-testing":         { "title": "Запуск тестів у GitHub Actions",                      "description": "Налаштування ефективних CI-пайплайнів для автоматизованого тестування." },
+      "docker-test-environments":       { "title": "Docker для тестових середовищ",                       "description": "Використання Docker та Docker Compose для відтворюваних тестових середовищ." },
+      "parallel-test-execution":        { "title": "Стратегії паралельного виконання тестів",             "description": "Прискорення тестових наборів шляхом ефективного паралельного запуску тестів." },
+      "test-pyramid":                   { "title": "Піраміда тестування",                                 "description": "Розуміння піраміди тестування та її застосування у вашій стратегії." },
+      "test-data-management":           { "title": "Управління тестовими даними",                         "description": "Стратегії створення, управління та очищення тестових даних." },
+      "flaky-test-prevention":          { "title": "Запобігання та виправлення нестабільних тестів",       "description": "Визначення причин нестабільності тестів та систематичне їх усунення." },
+      "typescript-for-testers":         { "title": "TypeScript для інженерів з тестування",               "description": "Ключові концепції TypeScript для безпечного та зручного тестового коду." },
+      "git-for-qa":                     { "title": "Git-процеси для QA-інженерів",                        "description": "Git-стратегії та команди, які повинен знати кожен QA-інженер." },
+      "debugging-tools":                { "title": "Інструменти налагодження для QA",                     "description": "Систематичні підходи та інструменти для налагодження збоїв тестів." },
+      "owasp-top-10":                   { "title": "OWASP Top 10 для QA-інженерів",                       "description": "Розуміння та тестування найкритичніших ризиків безпеки веб-застосунків." },
+      "auth-testing":                   { "title": "Тестування автентифікації та авторизації",            "description": "Комплексне тестування auth-потоків, управління сесіями та контролю доступу." },
+      "zap-security-scanning":          { "title": "Автоматизоване сканування безпеки з OWASP ZAP",       "description": "Використання OWASP ZAP для додавання сканування безпеки до CI-пайплайну." }
+    }
+  },
+  "header": {
+    "title": "AQA Нотатки 🚀",
+    "searchLabel": "Пошук"
+  },
+  "home": {
+    "title": "База знань",
+    "subtitle": "Патерни, інструменти та найкращі практики AQA"
+  },
+  "category": {
+    "back": "← Назад",
+    "subtitle": "Нотатки в цій категорії",
+    "empty": "В цій категорії ще немає нотаток.",
+    "notFound": "Категорію не знайдено."
+  },
+  "note": {
+    "notFound": "Нотатку не знайдено"
+  },
+  "search": {
+    "title": "Пошук",
+    "placeholder": "Шукати нотатки за назвою, вмістом або тегом…",
+    "results_one": "{{count}} результат для «{{query}}»",
+    "results_few": "{{count}} результати для «{{query}}»",
+    "results_many": "{{count}} результатів для «{{query}}»",
+    "results_other": "{{count}} результатів для «{{query}}»",
+    "noResults": "Нічого не знайдено для «{{query}}»"
+  },
+  "notFound": {
+    "title": "404",
+    "subtitle": "Сторінку не знайдено",
+    "back": "← На головну"
+  },
+  "categoryCard": {
+    "noteCount_one": "{{count}} нотатка",
+    "noteCount_few": "{{count}} нотатки",
+    "noteCount_many": "{{count}} нотаток",
+    "noteCount_other": "{{count}} нотаток"
+  }
+}

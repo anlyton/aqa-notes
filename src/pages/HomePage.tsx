@@ -1,33 +1,31 @@
-import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import Layout from '../components/Layout'
+import { TEST_IDS } from '../test-ids'
+import CategoryCard from '../components/CategoryCard'
+import { categories } from '../data/categories'
+import { notes } from '../data/notes'
 
 function HomePage() {
-    return (
-        <div className="min-h-screen bg-gray-900 text-white p-8">
-            <h1 className="text-4xl font-bold text-blue-400 mb-2">AQA Notes 🚀</h1>
-            <p className="text-gray-400 mb-8">Your personal knowledge base</p>
+  const { t } = useTranslation()
 
-            <div className="grid grid-cols-3 gap-4">
-                <Link to="/category/playwright">
-                    <div className="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 cursor-pointer">
-                        <h2 className="text-xl font-bold text-white mb-2">🎭 Playwright</h2>
-                        <p className="text-gray-400 text-sm">E2E testing framework</p>
-                    </div>
-                </Link>
-                <Link to="/category/javascript">
-                    <div className="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 cursor-pointer">
-                        <h2 className="text-xl font-bold text-white mb-2">📜 JavaScript</h2>
-                        <p className="text-gray-400 text-sm">Core language concepts</p>
-                    </div>
-                </Link>
-                <Link to="/category/react">
-                    <div className="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 cursor-pointer">
-                        <h2 className="text-xl font-bold text-white mb-2">⚛️ React</h2>
-                        <p className="text-gray-400 text-sm">UI library basics</p>
-                    </div>
-                </Link>
-            </div>
+  return (
+    <Layout>
+      <div data-testid={TEST_IDS.homePage.root}>
+        <h1 className="text-4xl font-bold text-blue-400 mb-2">{t('home.title')}</h1>
+        <p className="text-gray-400 mb-8">{t('home.subtitle')}</p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" data-testid={TEST_IDS.homePage.categoriesGrid}>
+          {categories.map((category) => (
+            <CategoryCard
+              key={category.slug}
+              category={category}
+              noteCount={notes.filter((n) => n.category === category.slug).length}
+            />
+          ))}
         </div>
-    )
+      </div>
+    </Layout>
+  )
 }
 
 export default HomePage

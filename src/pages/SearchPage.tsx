@@ -1,27 +1,62 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import Layout from '../components/Layout'
+import { TEST_IDS } from '../test-ids'
+import NoteCard from '../components/NoteCard'
+import { notes } from '../data/notes'
 
 function SearchPage() {
-    const [query, setQuery] = useState('')
+  const [query, setQuery] = useState('')
+  const { t } = useTranslation()
 
-    return (
-        <div className="min-h-screen bg-gray-900 text-white p-8">
-            <Link to="/" className="text-gray-400 hover:text-white mb-8 inline-block">← Back</Link>
-            <h1 className="text-4xl font-bold text-blue-400 mb-8">Search 🔍</h1>
+  const trimmed = query.trim().toLowerCase()
 
-            <input
-                type="text"
-                placeholder="Search notes..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="w-full bg-gray-800 text-white p-4 rounded-lg mb-8 outline-none focus:ring-2 focus:ring-blue-400"
-            />
+  const results = trimmed
+    ? notes.filter(
+        (note) =>
+          note.title.toLowerCase().includes(trimmed) ||
+          note.description.toLowerCase().includes(trimmed) ||
+          note.content.toLowerCase().includes(trimmed) ||
+          note.tags.some((tag) => tag.toLowerCase().includes(trimmed))
+      )
+    : []
 
-            {query && (
-                <p className="text-gray-400">Searching for: <span className="text-white">{query}</span></p>
+  return (
+    <Layout>
+      <div data-testid={TEST_IDS.searchPage.root}>
+        <h1 className="text-4xl font-bold text-blue-400 mb-6">{t('search.title')}</h1>
+
+        <input
+          type="text"
+          placeholder={t('search.placeholder')}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          autoFocus
+          className="w-full bg-gray-800 text-white p-4 rounded-lg mb-6 outline-none focus:ring-2 focus:ring-blue-400"
+          data-testid={TEST_IDS.searchPage.input}
+        />
+
+        {trimmed && (
+          <div data-testid={TEST_IDS.searchPage.results}>
+            {results.length === 0 ? (
+              <p className="text-gray-500" data-testid={TEST_IDS.searchPage.noResults}>
+                {t('search.noResults', { query })}
+              </p>
+            ) : (
+              <div className="flex flex-col gap-4">
+                <p className="text-gray-400 text-sm mb-2">
+                  {t('search.results', { count: results.length, query })}
+                </p>
+                {results.map((note) => (
+                  <NoteCard key={note.slug} note={note} />
+                ))}
+              </div>
             )}
-        </div>
-    )
+          </div>
+        )}
+      </div>
+    </Layout>
+  )
 }
 
 export default SearchPage
