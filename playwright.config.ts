@@ -1,0 +1,42 @@
+import { defineConfig, devices } from '@playwright/test';
+
+const isCI = !!process.env.CI
+const externalBaseURL = process.env.BASE_URL
+const baseURL = externalBaseURL ?? (isCI ? 'http://localhost:4173' : 'http://localhost:5173')
+
+export default defineConfig({
+  testDir: './tests',
+  fullyParallel: true,
+  forbidOnly: isCI,
+  retries: isCI ? 2 : 0,
+  workers: isCI ? 1 : undefined,
+  reporter: isCI ? [['github'], ['html', { open: 'never' }]] : 'html',
+  use: {
+    baseURL,
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+  },
+
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
+  ],
+
+  webServer: externalBaseURL
+    ? undefined
+    : {
+        command: isCI ? 'npm run preview' : 'npm run dev',
+        url: baseURL,
+        reuseExistingServer: !isCI,
+      },
+});
