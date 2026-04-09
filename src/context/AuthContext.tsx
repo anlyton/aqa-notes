@@ -8,6 +8,7 @@ type User = {
 type AuthContextType = {
   user: User | null
   login: (email: string, password: string) => boolean
+  loginAsGuest: () => void
   logout: () => void
 }
 
@@ -51,10 +52,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return false
   }
 
+  const loginAsGuest = () => setUser({ email: 'guest', name: 'Guest' })
+
   const logout = () => setUser(null)
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, loginAsGuest, logout }}>
       {children}
     </AuthContext.Provider>
   )
