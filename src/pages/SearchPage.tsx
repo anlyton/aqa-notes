@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import Layout from '../components/Layout'
 import { TEST_IDS } from '../test-ids'
@@ -11,15 +11,16 @@ function SearchPage() {
 
   const trimmed = query.trim().toLowerCase()
 
-  const results = trimmed
-    ? notes.filter(
-        (note) =>
-          note.title.toLowerCase().includes(trimmed) ||
-          note.description.toLowerCase().includes(trimmed) ||
-          note.content.toLowerCase().includes(trimmed) ||
-          note.tags.some((tag) => tag.toLowerCase().includes(trimmed))
-      )
-    : []
+  const results = useMemo(() => {
+    if (!trimmed) return []
+    return notes.filter(
+      (note) =>
+        note.title.toLowerCase().includes(trimmed) ||
+        note.description.toLowerCase().includes(trimmed) ||
+        note.content.toLowerCase().includes(trimmed) ||
+        note.tags.some((tag) => tag.toLowerCase().includes(trimmed))
+    )
+  }, [trimmed])
 
   return (
     <Layout>

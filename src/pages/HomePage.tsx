@@ -1,14 +1,21 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import Layout from '../components/Layout'
 import { TEST_IDS } from '../test-ids'
 import CategoryCard from '../components/CategoryCard'
 import { categories } from '../data/categories'
 import { notes } from '../data/notes'
+
 function HomePage() {
   const { t } = useTranslation()
 
   const featured = categories.slice(0, 2)
   const rest = categories.slice(2)
+
+  const noteCounts = useMemo(
+    () => new Map(categories.map((c) => [c.slug, notes.filter((n) => n.category === c.slug).length])),
+    []
+  )
 
   return (
     <Layout>
@@ -66,7 +73,7 @@ function HomePage() {
               <CategoryCard
                 key={category.slug}
                 category={category}
-                noteCount={notes.filter((n) => n.category === category.slug).length}
+                noteCount={noteCounts.get(category.slug) ?? 0}
                 size="lg"
               />
             ))}
@@ -77,7 +84,7 @@ function HomePage() {
               <CategoryCard
                 key={category.slug}
                 category={category}
-                noteCount={notes.filter((n) => n.category === category.slug).length}
+                noteCount={noteCounts.get(category.slug) ?? 0}
                 size="sm"
               />
             ))}

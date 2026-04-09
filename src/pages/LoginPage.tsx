@@ -52,8 +52,9 @@ export default function LoginPage() {
         >
           {/* Email */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-300">Email</label>
+            <label htmlFor="email" className="text-sm font-medium text-gray-300">Email</label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -65,8 +66,9 @@ export default function LoginPage() {
 
           {/* Password */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-gray-300">Password</label>
+            <label htmlFor="password" className="text-sm font-medium text-gray-300">Password</label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
