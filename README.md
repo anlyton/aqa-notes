@@ -1,73 +1,102 @@
-# React + TypeScript + Vite
+# AQA Notes
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A knowledge base web app for Automation QA engineers — built as a **Playwright portfolio project** to demonstrate real-world E2E test automation skills.
 
-Currently, two official plugins are available:
+## What this is
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+AQA Notes is a structured reference covering web, mobile, API, performance, and security test automation. The app itself is the **test target**: it provides realistic UI flows (auth, navigation, search, i18n) that serve as a meaningful playground for writing and showcasing Playwright tests.
 
-## React Compiler
+**Live site:** _add your deployed URL here_
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech stack
 
-## Expanding the ESLint configuration
+| Layer | Technology |
+|---|---|
+| UI | React 19, TypeScript, Tailwind CSS |
+| Routing | React Router v7 |
+| i18n | i18next (English / Ukrainian) |
+| Bundler | Vite |
+| E2E tests | Playwright |
+| CI | GitHub Actions |
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Project structure
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```
+src/
+├── components/       # Layout, CategoryCard, NoteCard, ProtectedRoute
+├── context/          # AuthContext (login / logout)
+├── data/             # categories, notes, automation-types (static content)
+├── pages/            # HomePage, CategoryPage, NotePage, SearchPage, ...
+├── locales/          # en.json, uk.json
+└── test-ids.ts       # data-testid constants shared with E2E tests
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+tests/                # Playwright specs
+.github/workflows/    # CI pipeline
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Credentials (demo)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Email | Password | Role |
+|---|---|---|
+| admin@aqa.dev | aqa2024 | Admin |
+| qa@aqa.dev | test1234 | QA Engineer |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Running locally
+
+```bash
+npm install
+npm run dev          # start dev server at http://localhost:5173
 ```
+
+## Running E2E tests
+
+```bash
+# against local dev server (starts automatically)
+npx playwright test
+
+# headed mode for debugging
+npx playwright test --headed
+
+# Playwright UI mode
+npx playwright test --ui
+
+# against a deployed URL
+BASE_URL=https://your-site.vercel.app npx playwright test
+```
+
+## CI pipeline
+
+Tests run automatically on every push and pull request to `main` via GitHub Actions:
+
+1. Install dependencies
+2. Build the app (`npm run build`)
+3. Start production preview (`npm run preview`)
+4. Run Playwright tests against `http://localhost:4173`
+5. Upload HTML report as a workflow artifact (14-day retention)
+
+See [`.github/workflows/playwright.yml`](.github/workflows/playwright.yml).
+
+## Deploying
+
+The app is a static Vite build — deploy anywhere that serves static files:
+
+```bash
+# Vercel (recommended)
+npm i -g vercel
+vercel
+
+# Netlify
+npm i -g netlify-cli
+netlify deploy --prod --dir=dist
+
+# Preview the production build locally
+npm run build
+npm run preview
+```
+
+## Portfolio notes
+
+- `test-ids.ts` exports `TEST_IDS` constants used in both the app and tests — no magic strings
+- Auth state is persisted in `localStorage` and protected routes redirect unauthenticated users
+- The `BASE_URL` env var lets tests point at any environment without changing config
+- CI uses `github` reporter so failures annotate the PR diff directly
