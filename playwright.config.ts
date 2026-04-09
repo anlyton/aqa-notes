@@ -11,10 +11,13 @@ export default defineConfig({
   retries: isCI ? 2 : 0,
   workers: isCI ? 1 : undefined,
   reporter: isCI ? [['github'], ['html', { open: 'never' }]] : 'html',
+  timeout: 30_000,
+  expect: { timeout: 5_000 },
   use: {
     baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    actionTimeout: 10_000,
   },
 
   projects: [

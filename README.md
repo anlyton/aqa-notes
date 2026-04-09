@@ -16,7 +16,7 @@ A knowledge base web app for Automation QA engineers — built as a **Playwright
 
 AQA Notes is a structured reference covering web, mobile, API, performance, and security test automation. The app itself is the **test target**: it provides realistic UI flows (auth, navigation, search, i18n) that serve as a meaningful playground for writing and showcasing Playwright tests.
 
-**Live site:** _add your deployed URL here_
+**Live site:** https://aqa-notes.vercel.app
 
 ## Tech stack
 
