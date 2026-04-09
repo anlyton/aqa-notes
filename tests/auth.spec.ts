@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test'
+import { LoginPage } from './pages/LoginPage'
+import { TEST_USER } from './helpers/env'
 
 test('login with valid credentials navigates to home', async ({ page }) => {
-  await page.goto('/login')
-  await page.fill('#email', 'admin@aqa.dev')
-  await page.fill('#password', 'aqa2024')
-  await page.getByRole('button', { name: 'Sign in' }).click()
+  const loginPage = new LoginPage(page)
+  await loginPage.goto()
+  await loginPage.login(TEST_USER.email, TEST_USER.password)
   await expect(page).toHaveURL('/')
 })

@@ -11,6 +11,8 @@ type AuthContextType = {
   logout: () => void
 }
 
+// Demo credentials — this is a portfolio app with no real backend.
+// In a real app, authentication would be handled server-side.
 const VALID_CREDENTIALS = [
   { email: 'admin@aqa.dev', password: 'aqa2024', name: 'Admin' },
   { email: 'qa@aqa.dev',    password: 'test1234', name: 'QA Engineer' },
