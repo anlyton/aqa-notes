@@ -2,6 +2,16 @@
 
 A knowledge base web app for Automation QA engineers — built as a **Playwright portfolio project** to demonstrate real-world E2E test automation skills.
 
+## Screenshots
+
+| Login | Home |
+|---|---|
+| ![Login](docs/screenshots/login.png) | ![Home](docs/screenshots/home.png) |
+
+| Search | Note |
+|---|---|
+| ![Search](docs/screenshots/search.png) | ![Note](docs/screenshots/note.png) |
+
 ## What this is
 
 AQA Notes is a structured reference covering web, mobile, API, performance, and security test automation. The app itself is the **test target**: it provides realistic UI flows (auth, navigation, search, i18n) that serve as a meaningful playground for writing and showcasing Playwright tests.
