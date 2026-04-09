@@ -5,6 +5,8 @@ export type Note = {
   description: string
   content: string
   tags: string[]
+  image?: string
+  docs?: { label: string; url: string }[]
 }
 
 export const notes: Note[] = [
@@ -15,15 +17,49 @@ export const notes: Note[] = [
     category: 'web',
     description: 'How to write resilient, maintainable locators in Playwright.',
     tags: ['playwright', 'locators', 'selectors'],
-    content: `Resilient selectors are the single biggest factor in stable end-to-end tests. Playwright offers several locator strategies, and the recommended approach is to prefer user-visible attributes over implementation details. Use getByRole, getByLabel, getByPlaceholder, and getByText whenever possible — these mirror how real users interact with the UI and survive visual redesigns.
+    image: 'https://cdn.simpleicons.org/playwright',
+    docs: [
+      { label: 'Playwright Locators', url: 'https://playwright.dev/docs/locators' },
+      { label: 'Best Practices', url: 'https://playwright.dev/docs/best-practices' },
+      { label: 'Codegen', url: 'https://playwright.dev/docs/codegen' },
+    ],
+    content: `Resilient selectors are the single biggest factor in stable end-to-end tests. Playwright offers several locator strategies — the recommended approach is to prefer **user-visible attributes** over implementation details.
 
-Avoid CSS class selectors and XPaths that encode DOM structure. A selector like .btn-primary or //div[3]/span[1] will break the moment a developer refactors markup. If no semantic attribute is available, add a data-testid attribute explicitly — this is a contract between the dev team and QA, and it makes intent clear.
+## Prefer semantic locators
 
-Chaining locators is powerful and readable. Instead of a long CSS path, write page.getByRole('dialog').getByRole('button', { name: 'Confirm' }). This scopes the search to the dialog, avoids ambiguity, and reads like a sentence.
+Use \`getByRole\`, \`getByLabel\`, \`getByPlaceholder\`, and \`getByText\` whenever possible. These mirror how real users interact with the UI and survive visual redesigns.
 
-Use locator.filter() when you need to narrow down a list of matching elements based on visible text or child elements. For example: page.getByRole('listitem').filter({ hasText: 'Invoice #1042' }). Combine this with .first(), .last(), or .nth() only when the ordering is semantically meaningful and stable.
+## Avoid fragile selectors
 
-Always prefer strict mode: Playwright throws if a locator matches multiple elements by default in action calls, which surfaces ambiguous selectors early. Run playwright codegen to generate initial locators quickly, then review and harden them before committing.`,
+Avoid CSS class selectors and XPaths that encode DOM structure:
+
+- ❌ \`.btn-primary\` — breaks on style refactors
+- ❌ \`//div[3]/span[1]\` — breaks on markup changes
+- ✅ \`data-testid\` — explicit contract between dev and QA
+
+## Chaining locators
+
+Chaining is powerful and readable. Instead of a long CSS path:
+
+\`\`\`ts
+page.getByRole('dialog').getByRole('button', { name: 'Confirm' })
+\`\`\`
+
+This scopes the search to the dialog, avoids ambiguity, and reads like a sentence.
+
+## Filtering lists
+
+Use \`locator.filter()\` to narrow down a list of matching elements:
+
+\`\`\`ts
+page.getByRole('listitem').filter({ hasText: 'Invoice #1042' })
+\`\`\`
+
+Combine with \`.first()\`, \`.last()\`, or \`.nth()\` only when the ordering is semantically stable.
+
+## Strict mode
+
+Playwright throws if a locator matches multiple elements by default in action calls — this surfaces ambiguous selectors early. Run \`playwright codegen\` to generate initial locators quickly, then review and harden them before committing.`,
   },
   {
     slug: 'playwright-page-objects',
@@ -31,15 +67,56 @@ Always prefer strict mode: Playwright throws if a locator matches multiple eleme
     category: 'web',
     description: 'Structuring Playwright tests with the Page Object Model pattern.',
     tags: ['playwright', 'pom', 'architecture'],
-    content: `The Page Object Model (POM) encapsulates the UI structure of a page behind a class, so tests interact with a readable API rather than raw selectors. In Playwright, a page object receives the Page fixture in its constructor and exposes methods that represent user actions: login(), submitForm(), assertSuccessBanner().
+    image: 'https://cdn.simpleicons.org/playwright',
+    docs: [
+      { label: 'Page Object Models', url: 'https://playwright.dev/docs/pom' },
+      { label: 'Playwright Fixtures', url: 'https://playwright.dev/docs/test-fixtures' },
+      { label: 'Test Organization', url: 'https://playwright.dev/docs/test-projects' },
+    ],
+    content: `The **Page Object Model (POM)** encapsulates the UI structure of a page behind a class, so tests interact with a readable API rather than raw selectors.
 
-A minimal page object looks like this: export class LoginPage { constructor(private page: Page) {} async login(email: string, password: string) { await this.page.getByLabel('Email').fill(email); await this.page.getByLabel('Password').fill(password); await this.page.getByRole('button', { name: 'Sign in' }).click(); } }. The test then reads: await loginPage.login('user@example.com', 'secret').
+## Basic page object
 
-Keep page objects thin. They should not contain assertions — move those into the test or into a dedicated assertion helper. A page object that also checks text content mixes responsibilities and becomes hard to reuse across different test scenarios.
+\`\`\`ts
+export class LoginPage {
+  constructor(private page: Page) {}
 
-Compose page objects for complex flows. A CheckoutFlow class might internally use CartPage, ShippingPage, and PaymentPage objects. This mirrors the real user journey and makes the test narrative clear: await checkout.addItem('Widget').proceedToShipping().fillAddress(addr).pay(card).assertOrderConfirmed().
+  async login(email: string, password: string) {
+    await this.page.getByLabel('Email').fill(email)
+    await this.page.getByLabel('Password').fill(password)
+    await this.page.getByRole('button', { name: 'Sign in' }).click()
+  }
+}
+\`\`\`
 
-Use Playwright fixtures to inject page objects. Create a custom fixture that instantiates your page objects and passes them to every test automatically, eliminating repetitive setup code and making the test file itself a clean specification of behavior.`,
+The test then reads:
+
+\`\`\`ts
+await loginPage.login('user@example.com', 'secret')
+\`\`\`
+
+## Keep page objects thin
+
+- ✅ Expose user actions: \`login()\`, \`submitForm()\`, \`openMenu()\`
+- ❌ Do not put assertions inside page objects — move those to the test or a dedicated helper
+- A page object that checks text content mixes responsibilities and becomes hard to reuse
+
+## Composing page objects
+
+For complex flows, compose page objects together:
+
+\`\`\`ts
+await checkout
+  .addItem('Widget')
+  .proceedToShipping()
+  .fillAddress(addr)
+  .pay(card)
+  .assertOrderConfirmed()
+\`\`\`
+
+## Use Playwright fixtures for injection
+
+Create a custom fixture that instantiates your page objects and passes them to every test automatically — this eliminates repetitive setup code and makes the test file itself a clean specification of behavior.`,
   },
   {
     slug: 'playwright-network-interception',
@@ -47,15 +124,53 @@ Use Playwright fixtures to inject page objects. Create a custom fixture that ins
     category: 'web',
     description: 'Intercept, mock, and stub network requests to isolate UI tests.',
     tags: ['playwright', 'network', 'mocking', 'api'],
-    content: `Playwright's page.route() API lets you intercept any network request and respond with a fixture, modify it in flight, or abort it entirely. This is invaluable when you want to test UI behaviour under specific API conditions — slow responses, error states, or data that is hard to produce in a real backend.
+    image: 'https://cdn.simpleicons.org/playwright',
+    docs: [
+      { label: 'Network API', url: 'https://playwright.dev/docs/network' },
+      { label: 'Mock APIs', url: 'https://playwright.dev/docs/mock' },
+      { label: 'Route from HAR', url: 'https://playwright.dev/docs/mock#record-and-replay-requests' },
+    ],
+    content: `Playwright's \`page.route()\` API lets you intercept any network request and respond with a fixture, modify it in flight, or abort it entirely.
 
-To mock an endpoint: await page.route('**/api/users', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(users) })). The test now runs deterministically regardless of backend state. Keep fixture files in a __fixtures__ directory and load them with fs.readFileSync so they can be shared across tests.
+## Mocking a successful response
 
-For testing error handling, abort or return 500: await page.route('**/api/checkout', route => route.fulfill({ status: 500, body: 'Internal Server Error' })). Verify that the UI shows a meaningful error message rather than crashing silently.
+\`\`\`ts
+await page.route('**/api/users', route =>
+  route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify(users),
+  })
+)
+\`\`\`
 
-Network interception is also useful for performance testing in CI: intercept third-party analytics, chat widgets, and CDN assets that are irrelevant to your feature under test. This speeds up test runs and removes flakiness caused by external services being slow or unavailable.
+Keep fixture files in a \`__fixtures__\` directory so they can be shared across tests.
 
-Use page.routeFromHAR() to replay a recorded HAR file. Record a real session once with browser DevTools, then use it as a stable mock layer. This captures realistic response shapes and headers without maintaining individual JSON fixtures for every endpoint.`,
+## Simulating errors
+
+\`\`\`ts
+await page.route('**/api/checkout', route =>
+  route.fulfill({ status: 500, body: 'Internal Server Error' })
+)
+\`\`\`
+
+Verify the UI shows a meaningful error message rather than crashing silently.
+
+## Performance & stability benefits
+
+Network interception is also useful in CI to:
+
+- Block third-party analytics, chat widgets, and CDN assets irrelevant to the feature under test
+- Speed up test runs by removing dependency on external services
+- Eliminate flakiness from slow or unavailable upstream APIs
+
+## Replay with HAR files
+
+\`\`\`ts
+await page.routeFromHAR('./fixtures/api.har', { update: false })
+\`\`\`
+
+Record a real session once with browser DevTools, then use it as a stable mock layer. This captures realistic response shapes and headers without maintaining individual JSON fixtures for every endpoint.`,
   },
 
   // ─── Mobile Automation ────────────────────────────────────────────────────
@@ -65,15 +180,43 @@ Use page.routeFromHAR() to replay a recorded HAR file. Record a real session onc
     category: 'mobile',
     description: 'Set up Detox for React Native end-to-end testing on iOS and Android.',
     tags: ['detox', 'react-native', 'ios', 'android'],
-    content: `Detox is a grey-box end-to-end testing framework for React Native. Unlike black-box approaches that treat the app as a binary, Detox synchronises with the React Native runtime, waiting for animations, network calls, and JS timers to settle before acting. This eliminates the most common source of mobile test flakiness: arbitrary sleep() calls.
+    image: 'https://cdn.simpleicons.org/reactnative',
+    docs: [
+      { label: 'Detox Getting Started', url: 'https://wix.github.io/Detox/docs/introduction/getting-started' },
+      { label: 'Detox Configuration', url: 'https://wix.github.io/Detox/docs/config/overview' },
+      { label: 'Detox GitHub', url: 'https://github.com/wix/Detox' },
+    ],
+    content: `**Detox** is a grey-box end-to-end testing framework for React Native. Unlike black-box approaches, Detox synchronises with the React Native runtime — waiting for animations, network calls, and JS timers to settle before acting. This eliminates the #1 source of mobile test flakiness: arbitrary \`sleep()\` calls.
 
-Install Detox as a dev dependency and add a detox configuration to package.json or detox.config.js. You need to specify a device type (simulator or emulator), the app binary path, and the test runner (Jest is standard). For iOS you will build the app in Debug configuration using xcodebuild; for Android you use gradlew assembleDebug.
+## Setup
 
-Write your first test using Detox's element API: await element(by.id('login-button')).tap(). The by.id() matcher corresponds to testID props in your React Native components — add these from day one, they are the most stable locator strategy available. Avoid by.text() for interactive elements since visible labels change with localisation.
+Install Detox as a dev dependency and configure \`detox.config.js\`:
 
-Detox tests run on real simulators/emulators, not in a browser. This means you must manage app state explicitly: use device.reloadReactNative() between tests to reset JS state cheaply without a full app restart. For a clean database state, expose a test-only endpoint or use the Detox launchArgs to pass flags that enable mock data.
+- Specify device type (simulator or emulator)
+- Set the app binary path
+- Choose the test runner (Jest is standard)
 
-Set up Detox in CI using GitHub Actions or Bitrise. Cache the simulator boot to save minutes on each run. Run tests in parallel across multiple simulators using the --maxWorkers flag — Detox handles device allocation automatically.`,
+Build commands:
+- **iOS** — \`xcodebuild\` in Debug configuration
+- **Android** — \`gradlew assembleDebug\`
+
+## Writing tests
+
+\`\`\`ts
+await element(by.id('login-button')).tap()
+\`\`\`
+
+The \`by.id()\` matcher maps to \`testID\` props in your React Native components. **Add these from day one** — they are the most stable locator strategy available. Avoid \`by.text()\` for interactive elements since visible labels change with localisation.
+
+## State management between tests
+
+- Use \`device.reloadReactNative()\` to reset JS state cheaply without a full restart
+- For a clean database state, expose a test-only endpoint or use Detox \`launchArgs\` to pass flags that enable mock data
+
+## CI setup
+
+- Cache the simulator boot to save minutes per run
+- Use \`--maxWorkers\` to run tests in parallel across multiple simulators — Detox handles device allocation automatically`,
   },
   {
     slug: 'maestro-flows',
@@ -81,15 +224,48 @@ Set up Detox in CI using GitHub Actions or Bitrise. Cache the simulator boot to 
     category: 'mobile',
     description: 'Use Maestro YAML flows for fast, readable mobile UI tests.',
     tags: ['maestro', 'mobile', 'yaml', 'ios', 'android'],
-    content: `Maestro is a mobile UI testing framework that uses simple YAML files to describe user flows. Unlike code-based frameworks, Maestro flows are readable by anyone on the team and require no compilation step — you run maestro test flow.yaml and see results in seconds. This makes it an excellent tool for fast feedback during development.
+    image: 'https://cdn.simpleicons.org/android',
+    docs: [
+      { label: 'Maestro Docs', url: 'https://maestro.mobile.dev/getting-started/installing-maestro' },
+      { label: 'Flow Commands Reference', url: 'https://maestro.mobile.dev/api-reference/commands' },
+      { label: 'Maestro GitHub', url: 'https://github.com/mobile-dev-inc/maestro' },
+    ],
+    content: `**Maestro** is a mobile UI testing framework that uses simple YAML files to describe user flows. No compilation step — run \`maestro test flow.yaml\` and see results in seconds.
 
-A basic flow looks like: appId: com.example.app, then a sequence of commands: - launchApp, - tapOn: "Sign In", - inputText: "user@example.com". Maestro automatically waits for elements to appear before interacting, so you rarely need explicit waits.
+## Basic flow
 
-Use maestro studio (maestro studio) for interactive flow recording. It opens a browser UI that mirrors your device screen and lets you tap elements to generate YAML steps. This is the fastest way to bootstrap a new flow — record it, then clean up the generated YAML and extract reusable subflows.
+\`\`\`yaml
+appId: com.example.app
+---
+- launchApp
+- tapOn: "Sign In"
+- inputText: "user@example.com"
+- tapOn: "Continue"
+- assertVisible: "Welcome"
+\`\`\`
 
-Subflows (runFlow) let you compose tests from reusable building blocks. Create a login.yaml subflow and reference it from every test that requires an authenticated state: - runFlow: ../shared/login.yaml. This keeps individual test flows short and focused on the feature being tested.
+Maestro automatically waits for elements to appear before interacting, so explicit waits are rarely needed.
 
-Maestro integrates with CI through the Maestro Cloud service or by running the CLI directly on a connected device or emulator. Use maestro test --format junit to output JUnit XML reports that your CI pipeline can parse. For parallel execution, run multiple flows simultaneously across different connected devices.`,
+## Maestro Studio
+
+Run \`maestro studio\` to open an interactive browser UI that mirrors your device screen. Tap elements to generate YAML steps — the fastest way to bootstrap a new flow.
+
+## Reusable subflows
+
+\`\`\`yaml
+- runFlow: ../shared/login.yaml
+- tapOn: "Dashboard"
+\`\`\`
+
+Create a \`login.yaml\` subflow and reference it from every test that requires an authenticated state. This keeps individual flows short and focused on the feature under test.
+
+## CI integration
+
+\`\`\`bash
+maestro test --format junit flows/
+\`\`\`
+
+Outputs JUnit XML that your CI pipeline can parse. For parallel execution, run multiple flows simultaneously across different connected devices.`,
   },
   {
     slug: 'mobile-testing-strategies',
@@ -97,15 +273,50 @@ Maestro integrates with CI through the Maestro Cloud service or by running the C
     category: 'mobile',
     description: 'Practical strategies for effective mobile test coverage.',
     tags: ['mobile', 'strategy', 'coverage', 'testing'],
-    content: `Mobile testing is harder than web testing for several reasons: device fragmentation, OS version differences, network variability, hardware permissions, and the difficulty of resetting app state. A good mobile test strategy accounts for all of these rather than assuming a single device and happy path.
+    image: 'https://cdn.simpleicons.org/android',
+    docs: [
+      { label: 'Firebase Test Lab', url: 'https://firebase.google.com/docs/test-lab' },
+      { label: 'BrowserStack App Automate', url: 'https://www.browserstack.com/docs/app-automate/appium/getting-started' },
+      { label: 'Appium Docs', url: 'https://appium.io/docs/en/latest/' },
+    ],
+    content: `Mobile testing is harder than web testing due to device fragmentation, OS version differences, network variability, hardware permissions, and the difficulty of resetting app state.
 
-Apply the testing pyramid to mobile: most coverage should come from unit tests and integration tests of business logic (pure JS/Kotlin/Swift), fewer from component tests, and only the critical happy paths from E2E. Full E2E tests on simulators are slow — 2-5 minutes per test on a cold boot — so reserve them for user journeys that cannot be verified any other way.
+## Apply the testing pyramid
 
-Test on real devices for release validation. Simulators miss GPU rendering issues, actual touch latency, memory pressure under real conditions, and edge cases in camera/GPS/biometric APIs. Use a device farm (BrowserStack App Automate, Firebase Test Lab) for broad device coverage without maintaining a physical lab.
+- **Unit tests** — business logic in pure JS/Kotlin/Swift (fast, many)
+- **Integration tests** — component interactions (moderate)
+- **E2E tests** — only critical happy paths (slow, few)
 
-Handle permissions (camera, location, notifications) explicitly. In Detox, set permissions via the launch configuration: { permissions: { camera: 'YES', location: 'inuse' } }. In Maestro, use setPermissions. Never rely on the OS default — it varies by version and simulator state.
+Full E2E tests on simulators can take 2–5 minutes per test on a cold boot. Reserve them for journeys that cannot be verified any other way.
 
-Invest in test data management. Mobile apps often cache data locally (AsyncStorage, SQLite, Keychain). Between tests you need a reliable reset mechanism. Options include: clearing app data before each test (slow), exposing a debug reset screen, or seeding state through a deep link. Choose based on how much isolation your test suite actually needs.`,
+## Real devices vs simulators
+
+| | Simulators | Real Devices |
+|---|---|---|
+| Speed | Fast | Slow |
+| GPU rendering | ❌ | ✅ |
+| Touch latency | ❌ | ✅ |
+| Camera/GPS/Biometrics | Limited | ✅ |
+
+Use **Firebase Test Lab** or **BrowserStack App Automate** for broad device coverage without a physical lab.
+
+## Handle permissions explicitly
+
+\`\`\`ts
+// Detox
+await device.launchApp({
+  permissions: { camera: 'YES', location: 'inuse' }
+})
+\`\`\`
+
+Never rely on OS defaults — they vary by version and simulator state.
+
+## Test data and state reset
+
+Options between tests:
+1. **Clear app data** — slow but thorough
+2. **Debug reset screen** — expose a dev-only reset button
+3. **Deep link seeding** — inject state via a test scheme URL`,
   },
 
   // ─── API / Backend ────────────────────────────────────────────────────────
@@ -115,15 +326,56 @@ Invest in test data management. Mobile apps often cache data locally (AsyncStora
     category: 'api',
     description: 'Core principles and techniques for testing REST APIs effectively.',
     tags: ['rest', 'api', 'http', 'testing'],
-    content: `REST API testing validates that your service behaves correctly across all HTTP verbs, status codes, and payload shapes — without involving a browser or UI. It is faster, more stable, and more precise than end-to-end UI tests, which makes it ideal for catching contract breakages and regression early.
+    image: 'https://cdn.simpleicons.org/postman',
+    docs: [
+      { label: 'Postman Learning Center', url: 'https://learning.postman.com/docs/getting-started/overview/' },
+      { label: 'Supertest (Node.js)', url: 'https://github.com/ladjs/supertest' },
+      { label: 'REST API Testing Guide', url: 'https://www.postman.com/api-platform/api-testing/' },
+    ],
+    content: `REST API testing validates that your service behaves correctly across all HTTP verbs, status codes, and payload shapes — without a browser or UI. It is faster, more stable, and more precise than E2E tests.
 
-Cover the full status code matrix for each endpoint: 200 success, 201 created, 204 no content, 400 bad request with validation errors, 401 unauthenticated, 403 forbidden, 404 not found, 409 conflict, 422 unprocessable entity, and 500 server error. Each code path represents a decision in your application logic and deserves a test.
+## Status code coverage matrix
 
-Use a library like supertest (Node.js) or requests (Python) to make HTTP calls in your tests. Prefer asserting on the full response body shape rather than just a single field — this catches unexpected changes in payload structure. Use JSON Schema validation (Ajv, zod) to assert that responses conform to the documented contract.
+Every endpoint should be tested for:
 
-Test authentication and authorisation explicitly. Verify that unauthenticated requests return 401, that a user with a valid token but insufficient role gets 403, and that token expiry is handled gracefully. These checks are easy to skip but represent critical security coverage.
+| Code | Meaning |
+|---|---|
+| \`200\` | Success |
+| \`201\` | Created |
+| \`204\` | No content |
+| \`400\` | Bad request / validation errors |
+| \`401\` | Unauthenticated |
+| \`403\` | Forbidden |
+| \`404\` | Not found |
+| \`409\` | Conflict |
+| \`422\` | Unprocessable entity |
+| \`500\` | Server error |
 
-Group tests by resource and use beforeAll/afterAll hooks to set up and tear down test data. Avoid depending on existing database state — create your test data programmatically in the test setup. This makes tests portable across environments (local, staging, CI) and prevents order-dependent failures.`,
+## Example with Supertest
+
+\`\`\`ts
+const res = await request(app)
+  .post('/api/users')
+  .send({ email: 'user@example.com' })
+  .expect(201)
+
+expect(res.body).toMatchObject({ id: expect.any(String) })
+\`\`\`
+
+## Schema validation
+
+Use **Zod** or **Ajv** to assert that responses conform to the documented contract — not just a single field.
+
+## Auth coverage checklist
+
+- ✅ Valid token → access granted
+- ✅ No token → \`401\`
+- ✅ Expired token → \`401\`
+- ✅ Valid token, wrong role → \`403\`
+
+## Test data setup
+
+Use \`beforeAll\`/\`afterAll\` hooks to create and tear down test data programmatically. Never depend on pre-existing database state.`,
   },
   {
     slug: 'graphql-testing',
@@ -131,15 +383,60 @@ Group tests by resource and use beforeAll/afterAll hooks to set up and tear down
     category: 'api',
     description: 'Strategies and tools for testing GraphQL queries, mutations, and subscriptions.',
     tags: ['graphql', 'api', 'testing', 'schema'],
-    content: `GraphQL testing differs from REST testing because the schema is the contract. Start by validating that your schema itself is correct: use tools like graphql-inspector to detect breaking changes (removed fields, changed types, changed nullability) between schema versions. Integrate this into CI as a schema diff step on every pull request.
+    image: 'https://cdn.simpleicons.org/graphql',
+    docs: [
+      { label: 'GraphQL Inspector', url: 'https://the-guild.dev/graphql/inspector' },
+      { label: 'Mock Service Worker (MSW)', url: 'https://mswjs.io/docs/' },
+      { label: 'GraphQL spec', url: 'https://spec.graphql.org/' },
+    ],
+    content: `GraphQL testing differs from REST because **the schema is the contract**. Start by validating the schema itself, then test queries, mutations, and subscriptions.
 
-Test queries by sending them to the /graphql endpoint with a specific operation and variables. Assert on the data shape in the response. Unlike REST, a GraphQL endpoint always returns 200 even for errors — check response.errors to detect application-level failures. A test that only asserts status 200 gives false confidence.
+## Schema diff in CI
 
-Test mutations by verifying both the mutation response and the resulting state. After createUser, assert that the returned user object has the expected fields, then make a getUser query to confirm the record was actually persisted. This two-step verification catches mutations that return a fabricated response without writing to the database.
+Use **graphql-inspector** to detect breaking changes between schema versions:
 
-Use MSW (Mock Service Worker) or a test GraphQL server for frontend integration tests. Define handlers that return fixture data for specific operations. This decouples frontend tests from backend availability and makes them fast and deterministic. Keep handlers in a shared location so they mirror the real schema and get updated when the schema changes.
+- Removed fields
+- Changed types
+- Changed nullability
 
-For subscriptions, test the full WebSocket lifecycle: connection, message delivery, and graceful closure. Use a test client like graphql-ws's createClient in test mode. Verify that subscription events are delivered when the underlying data changes and that the client handles reconnection correctly.`,
+Integrate as a schema diff step on every pull request.
+
+## Testing queries
+
+\`\`\`ts
+const { data, errors } = await client.query({
+  query: GET_USER,
+  variables: { id: '123' },
+})
+
+expect(errors).toBeUndefined()
+expect(data.user.email).toBe('user@example.com')
+\`\`\`
+
+> ⚠️ A GraphQL endpoint always returns \`200\` even for errors. Always check \`response.errors\` — a test that only asserts status 200 gives false confidence.
+
+## Testing mutations
+
+Verify **both** the mutation response **and** the resulting state:
+
+1. Run \`createUser\` mutation → assert returned user fields
+2. Run \`getUser\` query → confirm the record was actually persisted
+
+This catches mutations that return a fabricated response without writing to the database.
+
+## Frontend integration tests with MSW
+
+\`\`\`ts
+server.use(
+  graphql.query('GetUser', (req, res, ctx) =>
+    res(ctx.data({ user: { id: '1', email: 'user@example.com' } }))
+  )
+)
+\`\`\`
+
+## Subscriptions
+
+Test the full WebSocket lifecycle: connection → message delivery → graceful closure. Use a test client in test mode and verify events are delivered when underlying data changes.`,
   },
   {
     slug: 'api-authentication-testing',
@@ -147,15 +444,56 @@ For subscriptions, test the full WebSocket lifecycle: connection, message delive
     category: 'api',
     description: 'How to thoroughly test auth flows, tokens, and access control in APIs.',
     tags: ['auth', 'jwt', 'oauth', 'security', 'api'],
-    content: `Authentication tests verify that the system correctly identifies who you are. Authorization tests verify that it correctly controls what you can do. Both are critical and frequently undertested — most teams check the happy path (valid token → access granted) but skip the negative cases.
+    image: 'https://cdn.simpleicons.org/jsonwebtokens',
+    docs: [
+      { label: 'JWT.io Debugger', url: 'https://jwt.io/' },
+      { label: 'OAuth 2.0 Spec', url: 'https://oauth.net/2/' },
+      { label: 'OWASP Auth Testing Guide', url: 'https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/04-Authentication_Testing/' },
+    ],
+    content: `**Authentication** = who are you? **Authorization** = what are you allowed to do? Both are critical and frequently undertested.
 
-For JWT-based auth, test the full token lifecycle: obtain a token via login, use it on a protected endpoint, use an expired token, use a token with a tampered signature, use a token with the wrong audience claim, and use no token at all. Each of these should return a specific, documented error response.
+## JWT token lifecycle tests
 
-Test vertical privilege escalation: can a regular user call admin endpoints? Send requests with a valid user token to routes that require admin role and assert 403. Test horizontal privilege escalation: can user A access user B's resources? Send a request with user A's token to an endpoint that returns user B's data.
+Test every case:
 
-OAuth2 flows require testing the full redirect dance. In automated tests, skip the browser-based consent screen by using a service account or by directly calling the token endpoint with client credentials. Verify that the access token works, that refresh tokens produce new access tokens, and that revoked tokens are rejected promptly.
+| Scenario | Expected result |
+|---|---|
+| Valid token | \`200\` + data |
+| No token | \`401\` |
+| Expired token | \`401\` |
+| Tampered signature | \`401\` |
+| Wrong audience claim | \`401\` |
 
-Rate limiting and brute-force protection should be tested with consecutive failed attempts. Verify that after N failures the account is locked or the IP is throttled. Check that the lockout mechanism itself cannot be bypassed by rotating through multiple endpoints or by changing the User-Agent header.`,
+## Privilege escalation
+
+**Vertical** — can a regular user call admin endpoints?
+\`\`\`
+GET /admin/users  →  403 (with user token)
+\`\`\`
+
+**Horizontal** — can user A access user B's resources?
+\`\`\`
+GET /orders/USER_B_ORDER_ID  →  403 (with user A's token)
+\`\`\`
+
+## OAuth2 flows
+
+Skip the browser-based consent screen in tests by using a service account or calling the token endpoint directly with client credentials:
+
+\`\`\`
+POST /oauth/token
+  grant_type=client_credentials
+  client_id=...
+  client_secret=...
+\`\`\`
+
+Verify: access token works, refresh tokens produce new access tokens, revoked tokens are rejected.
+
+## Brute-force protection
+
+Send N consecutive failed login attempts and assert:
+- Account is locked or IP is throttled
+- Lockout cannot be bypassed by rotating endpoints or changing \`User-Agent\``,
   },
 
   // ─── Performance ──────────────────────────────────────────────────────────
@@ -165,15 +503,60 @@ Rate limiting and brute-force protection should be tested with consecutive faile
     category: 'performance',
     description: 'Write and run load tests using k6 with realistic traffic scenarios.',
     tags: ['k6', 'load-testing', 'performance', 'javascript'],
-    content: `k6 is a developer-focused load testing tool that lets you write test scripts in JavaScript. Unlike older tools such as JMeter, k6 scripts look like regular code, version-control well, and integrate naturally with CI pipelines. k6 runs test scenarios from a single binary with no JVM or browser overhead.
+    image: 'https://cdn.simpleicons.org/k6',
+    docs: [
+      { label: 'k6 Documentation', url: 'https://k6.io/docs/' },
+      { label: 'Running k6', url: 'https://k6.io/docs/get-started/running-k6/' },
+      { label: 'k6 Thresholds', url: 'https://k6.io/docs/using-k6/thresholds/' },
+    ],
+    content: `**k6** is a developer-focused load testing tool that lets you write test scripts in JavaScript. Scripts version-control well and integrate naturally with CI pipelines.
 
-A basic k6 script exports a default function that describes one virtual user's behaviour. Use the http module to make requests: import http from 'k6/http'; export default function() { http.get('https://api.example.com/products'); }. Add checks to assert response correctness: check(res, { 'status is 200': r => r.status === 200 }).
+## Basic script
 
-Define load scenarios using the options export. A typical ramp-up pattern uses stages: [{ duration: '1m', target: 50 }, { duration: '5m', target: 50 }, { duration: '1m', target: 0 }]. This ramps to 50 virtual users, holds for 5 minutes, then ramps back down. Use multiple scenarios in one run (constant-arrival-rate, ramping-arrival-rate) for more realistic traffic modelling.
+\`\`\`js
+import http from 'k6/http'
+import { check } from 'k6'
 
-Set performance thresholds: options.thresholds = { http_req_duration: ['p(95)<500'], http_req_failed: ['rate<0.01'] }. k6 exits with a non-zero code if thresholds are breached, making it easy to fail a CI build when performance degrades. Track the p95 and p99 latencies, not just the average, since averages hide tail latency problems.
+export default function () {
+  const res = http.get('https://api.example.com/products')
+  check(res, { 'status is 200': r => r.status === 200 })
+}
+\`\`\`
 
-Use k6 extensions (xk6) for advanced scenarios: xk6-browser for browser-level performance metrics, xk6-websocket for WebSocket load testing, xk6-kafka for event-driven systems. Output results to InfluxDB + Grafana or k6 Cloud for trend analysis across runs.`,
+## Load scenarios (ramp-up pattern)
+
+\`\`\`js
+export const options = {
+  stages: [
+    { duration: '1m', target: 50 },   // ramp up to 50 VUs
+    { duration: '5m', target: 50 },   // hold
+    { duration: '1m', target: 0 },    // ramp down
+  ],
+}
+\`\`\`
+
+## Thresholds (fail the build on regression)
+
+\`\`\`js
+export const options = {
+  thresholds: {
+    http_req_duration: ['p(95)<500'],  // 95th percentile < 500ms
+    http_req_failed:   ['rate<0.01'],  // error rate < 1%
+  },
+}
+\`\`\`
+
+> 💡 Track **p95** and **p99** latencies, not just averages — averages hide tail latency problems.
+
+## Extensions (xk6)
+
+| Extension | Use case |
+|---|---|
+| \`xk6-browser\` | Browser-level performance metrics |
+| \`xk6-websocket\` | WebSocket load testing |
+| \`xk6-kafka\` | Event-driven system testing |
+
+Output results to **InfluxDB + Grafana** or **k6 Cloud** for trend analysis across runs.`,
   },
   {
     slug: 'lighthouse-performance-audits',
@@ -181,15 +564,56 @@ Use k6 extensions (xk6) for advanced scenarios: xk6-browser for browser-level pe
     category: 'performance',
     description: 'Automate Lighthouse audits in CI to catch performance regressions.',
     tags: ['lighthouse', 'performance', 'core-web-vitals', 'ci'],
-    content: `Lighthouse is a Google tool that audits web pages for performance, accessibility, SEO, and best practices. Running it manually in DevTools is useful for spot-checking, but the real value comes from automating it in CI and asserting on scores over time to catch regressions before they reach production.
+    image: 'https://cdn.simpleicons.org/googlechrome',
+    docs: [
+      { label: 'Lighthouse CI', url: 'https://github.com/GoogleChrome/lighthouse-ci' },
+      { label: 'Core Web Vitals', url: 'https://web.dev/explore/learn-core-web-vitals' },
+      { label: 'Lighthouse Scoring', url: 'https://developer.chrome.com/docs/lighthouse/performance/performance-scoring' },
+    ],
+    content: `**Lighthouse** audits web pages for performance, accessibility, SEO, and best practices. Automate it in CI to catch regressions before production.
 
-Use the Lighthouse CI (LHCI) tool to run audits as part of your pipeline. Install @lhci/cli and add a lighthouserc.js config: module.exports = { ci: { collect: { url: ['http://localhost:3000'] }, assert: { assertions: { 'categories:performance': ['error', { minScore: 0.9 }] } } } }. This will fail the build if the performance score drops below 90.
+## Lighthouse CI setup
 
-Focus on Core Web Vitals: Largest Contentful Paint (LCP < 2.5s), Cumulative Layout Shift (CLS < 0.1), and Interaction to Next Paint (INP < 200ms). These are the metrics Google uses for search ranking and they correlate directly with user experience. Lighthouse measures all three and surfaces the specific resources causing the issues.
+\`\`\`js
+// lighthouserc.js
+module.exports = {
+  ci: {
+    collect: { url: ['http://localhost:3000'] },
+    assert: {
+      assertions: {
+        'categories:performance': ['error', { minScore: 0.9 }],
+        'categories:accessibility': ['warn',  { minScore: 0.9 }],
+      },
+    },
+  },
+}
+\`\`\`
 
-Understand the difference between lab and field data. Lighthouse runs in a controlled environment with CPU throttling — scores will differ from real-user measurements in your analytics tool. Use the Chrome User Experience Report (CrUX) or your own RUM data for field validation. Treat Lighthouse as a regression detector and real-user metrics as ground truth.
+Fails the build if the performance score drops below **90**.
 
-When diagnosing LCP issues, look for render-blocking resources, unoptimised images (use WebP, set explicit dimensions, add fetchpriority="high" to the hero image), and slow server response times. For CLS, ensure all images and ads have explicit width/height, avoid inserting content above the fold after load, and use font-display: optional or swap to avoid layout shifts from web fonts.`,
+## Core Web Vitals targets
+
+| Metric | Good | Needs work |
+|---|---|---|
+| **LCP** (Largest Contentful Paint) | < 2.5s | > 4s |
+| **CLS** (Cumulative Layout Shift) | < 0.1 | > 0.25 |
+| **INP** (Interaction to Next Paint) | < 200ms | > 500ms |
+
+## Lab vs field data
+
+- **Lab** (Lighthouse) — controlled environment with CPU throttling; good for regression detection
+- **Field** (CrUX / RUM) — real users on real devices; ground truth for UX
+
+## Common LCP fixes
+
+- Add \`fetchpriority="high"\` to the hero image
+- Use **WebP** format with explicit \`width\` and \`height\`
+- Eliminate render-blocking resources
+
+## Common CLS fixes
+
+- Set explicit dimensions on all images and ads
+- Use \`font-display: optional\` or \`swap\` to avoid layout shifts from web fonts`,
   },
 
   // ─── CI/CD & Infrastructure ───────────────────────────────────────────────
@@ -199,15 +623,68 @@ When diagnosing LCP issues, look for render-blocking resources, unoptimised imag
     category: 'cicd',
     description: 'Set up efficient CI pipelines for automated testing with GitHub Actions.',
     tags: ['github-actions', 'ci', 'yml', 'pipeline'],
-    content: `GitHub Actions is the standard CI platform for projects hosted on GitHub. Configuring your test suite to run on every pull request is the foundation of a healthy quality process — it makes broken code visible before it reaches main and gives reviewers confidence in proposed changes.
+    image: 'https://cdn.simpleicons.org/githubactions',
+    docs: [
+      { label: 'GitHub Actions Docs', url: 'https://docs.github.com/en/actions' },
+      { label: 'Playwright in CI', url: 'https://playwright.dev/docs/ci-intro' },
+      { label: 'Actions Marketplace', url: 'https://github.com/marketplace?type=actions' },
+    ],
+    content: `GitHub Actions is the standard CI platform for GitHub projects. Running tests on every pull request is the foundation of a healthy quality process.
 
-A basic test workflow lives in .github/workflows/test.yml. Trigger it on push and pull_request to the main branch. Use the ubuntu-latest runner for most test jobs. Steps typically look like: checkout the code, set up Node.js with a specific version, restore the npm cache, install dependencies, and run your test command.
+## Basic workflow skeleton
 
-Cache dependencies aggressively. The actions/cache action with a key based on the hash of package-lock.json restores node_modules between runs, saving 30-90 seconds per job. For Playwright, also cache the browser binaries: npx playwright install --with-deps and cache ~/.cache/ms-playwright.
+\`\`\`yaml
+# .github/workflows/test.yml
+name: Tests
+on: [push, pull_request]
 
-Split test jobs by type for faster feedback. Run unit tests in one job (fast, no external dependencies), API tests in a second job (needs a service container), and E2E tests in a third job (slowest). Use the needs keyword to sequence jobs or run them in parallel. Upload test reports and screenshots as artifacts with actions/upload-artifact so failures can be diagnosed without re-running.
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: \${{ runner.os }}-npm-\${{ hashFiles('package-lock.json') }}
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - run: npm test
+\`\`\`
 
-Use matrix builds to test across multiple Node.js versions or browser configurations: strategy: { matrix: { node: [18, 20], browser: ['chromium', 'firefox'] } }. The env: block lets you pass environment variables securely — use GitHub Secrets for API keys, tokens, and connection strings rather than hardcoding them in workflow files.`,
+## Caching Playwright browsers
+
+\`\`\`yaml
+- uses: actions/cache@v4
+  with:
+    path: ~/.cache/ms-playwright
+    key: playwright-\${{ hashFiles('package-lock.json') }}
+\`\`\`
+
+Saves 1–3 minutes per run.
+
+## Split jobs by type
+
+\`\`\`yaml
+jobs:
+  unit:   { runs-on: ubuntu-latest, steps: [...] }
+  api:    { needs: unit, services: { postgres: ... } }
+  e2e:    { needs: unit, steps: [...] }
+\`\`\`
+
+## Browser matrix
+
+\`\`\`yaml
+strategy:
+  matrix:
+    browser: [chromium, firefox, webkit]
+steps:
+  - run: npx playwright test --project=\${{ matrix.browser }}
+\`\`\`
+
+Use **GitHub Secrets** for API keys and tokens — never hardcode them in workflow files.`,
   },
   {
     slug: 'docker-test-environments',
@@ -215,15 +692,76 @@ Use matrix builds to test across multiple Node.js versions or browser configurat
     category: 'cicd',
     description: 'Use Docker and Docker Compose to create reproducible test environments.',
     tags: ['docker', 'docker-compose', 'containers', 'ci'],
-    content: `Docker solves the "works on my machine" problem for test environments. By containerising your application and its dependencies (database, message queue, cache), you ensure that every developer and every CI run executes tests in an identical, reproducible environment.
+    image: 'https://cdn.simpleicons.org/docker',
+    docs: [
+      { label: 'Docker Compose Docs', url: 'https://docs.docker.com/compose/' },
+      { label: 'Playwright Docker Image', url: 'https://playwright.dev/docs/docker' },
+      { label: 'Docker Hub', url: 'https://hub.docker.com/' },
+    ],
+    content: `Docker solves the "works on my machine" problem by ensuring every developer and every CI run executes tests in an **identical, reproducible environment**.
 
-Write a docker-compose.test.yml that defines all services needed for integration tests: your app container, a Postgres container, a Redis container, and any mocks (WireMock, LocalStack). Use healthchecks so dependent services wait for dependencies to be ready before starting: healthcheck: { test: ["CMD", "pg_isready", "-U", "postgres"], interval: "5s", retries: 5 }.
+## docker-compose.test.yml
 
-For Playwright E2E tests, use the official Playwright Docker image (mcr.microsoft.com/playwright). It includes all browser dependencies pre-installed, which avoids the common CI failure of missing shared libraries. Mount your test source as a volume and run npx playwright test inside the container.
+\`\`\`yaml
+services:
+  app:
+    build: .
+    depends_on:
+      postgres: { condition: service_healthy }
 
-Use multi-stage Dockerfiles to separate the test environment from the production image. Stage 1 installs dev dependencies and runs tests; stage 2 builds the production bundle; stage 3 is the minimal production image. This prevents test tooling from leaking into the production image and keeps image sizes small.
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: test
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 5
+\`\`\`
 
-In GitHub Actions, use the services block to spin up containers for your job: services: { postgres: { image: 'postgres:16', env: { POSTGRES_PASSWORD: 'test' }, ports: ['5432:5432'] } }. GitHub manages the container lifecycle automatically. The service is accessible at localhost with the mapped port.`,
+The \`healthcheck\` ensures dependent services wait for dependencies to be ready.
+
+## Playwright E2E in Docker
+
+Use the official image — all browser dependencies are pre-installed:
+
+\`\`\`dockerfile
+FROM mcr.microsoft.com/playwright:v1.50.0-jammy
+WORKDIR /app
+COPY . .
+RUN npm ci
+CMD ["npx", "playwright", "test"]
+\`\`\`
+
+## Multi-stage Dockerfile
+
+\`\`\`dockerfile
+# Stage 1: test
+FROM node:20 AS test
+RUN npm ci && npm test
+
+# Stage 2: build
+FROM node:20 AS build
+RUN npm run build
+
+# Stage 3: production
+FROM nginx:alpine AS prod
+COPY --from=build /app/dist /usr/share/nginx/html
+\`\`\`
+
+Prevents test tooling from leaking into the production image.
+
+## GitHub Actions service containers
+
+\`\`\`yaml
+services:
+  postgres:
+    image: postgres:16
+    env: { POSTGRES_PASSWORD: test }
+    ports: ['5432:5432']
+\`\`\`
+
+GitHub manages the container lifecycle automatically — accessible at \`localhost:5432\`.`,
   },
   {
     slug: 'parallel-test-execution',
@@ -231,15 +769,58 @@ In GitHub Actions, use the services block to spin up containers for your job: se
     category: 'cicd',
     description: 'Speed up test suites by running tests in parallel effectively.',
     tags: ['parallelism', 'sharding', 'ci', 'speed'],
-    content: `Parallel test execution is the highest-leverage optimisation for slow test suites. A 30-minute sequential run can become a 5-minute parallel run with 6 workers — no code changes required, just infrastructure. The key is partitioning tests so work is distributed evenly and tests do not interfere with each other.
+    image: 'https://cdn.simpleicons.org/playwright',
+    docs: [
+      { label: 'Playwright Sharding', url: 'https://playwright.dev/docs/test-sharding' },
+      { label: 'GitHub Actions Matrix', url: 'https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs' },
+      { label: 'Playwright Parallelism', url: 'https://playwright.dev/docs/test-parallel' },
+    ],
+    content: `Parallel test execution is the highest-leverage optimisation for slow test suites. A **30-minute** sequential run can become a **5-minute** parallel run with 6 workers — no code changes, just infrastructure.
 
-Playwright has native sharding support: npx playwright test --shard=1/4 runs the first quarter of tests. In GitHub Actions, create a matrix with shardIndex and shardTotal values and pass them to the test command. Each shard runs as a separate job and they execute in parallel. Merge the resulting reports with playwright merge-reports.
+## Playwright sharding
 
-Test isolation is a prerequisite for parallelism. Tests that share mutable state (a single database, a single user account) will produce race conditions when run concurrently. Solutions: use a separate database per worker (create schema per test run, drop after), use unique identifiers in test data (user+timestamp), or use transactions that rollback after each test.
+\`\`\`bash
+# Run shard 1 of 4
+npx playwright test --shard=1/4
+\`\`\`
 
-Jest supports --runInBand (sequential) for debugging and --maxWorkers=N for parallel execution within a single machine. Vitest uses worker threads by default. For cross-machine parallelism, use a CI matrix strategy or a distributed test orchestrator like Nx Cloud or Turborepo remote caching.
+In GitHub Actions, use a matrix:
 
-Monitor your test run time distribution using CI analytics. Look for the longest-running test file and break it up, look for setup/teardown that could be shared via beforeAll instead of beforeEach, and look for tests that could be parameterised instead of duplicated. Even with parallelism, a single slow test file becomes the bottleneck.`,
+\`\`\`yaml
+strategy:
+  matrix:
+    shardIndex: [1, 2, 3, 4]
+    shardTotal: [4]
+steps:
+  - run: npx playwright test --shard=\${{ matrix.shardIndex }}/\${{ matrix.shardTotal }}
+\`\`\`
+
+Merge reports afterwards:
+
+\`\`\`bash
+npx playwright merge-reports ./all-blob-reports --reporter html
+\`\`\`
+
+## Prerequisites: test isolation
+
+Tests that share mutable state produce race conditions when run concurrently. Solutions:
+
+1. **Separate schema per worker** — create/drop DB schema per test run
+2. **Unique test data** — use \`user+\${Date.now()}@example.com\`
+3. **Transactions** — rollback after each test
+
+## Per-machine parallelism
+
+- **Jest** — \`--maxWorkers=N\` or \`--runInBand\` (sequential, for debugging)
+- **Vitest** — worker threads by default
+- **Playwright** — \`workers\` config option
+
+## Find bottlenecks
+
+Monitor test run time distribution. Look for:
+- The longest-running test file — break it up
+- \`beforeEach\` setup that could be \`beforeAll\`
+- Duplicated tests that could be parameterised`,
   },
 
   // ─── Test Design ──────────────────────────────────────────────────────────
@@ -249,15 +830,56 @@ Monitor your test run time distribution using CI analytics. Look for the longest
     category: 'test-design',
     description: 'Understanding the test pyramid and applying it to your test strategy.',
     tags: ['strategy', 'pyramid', 'unit-testing', 'integration', 'e2e'],
-    content: `The test pyramid, introduced by Mike Cohn, is a model for allocating test effort across different test levels. The base is unit tests (many, fast, cheap), the middle is service/integration tests (some, moderate speed, moderate cost), and the apex is UI/E2E tests (few, slow, expensive). Inverting this pyramid — relying mostly on E2E tests — leads to slow, brittle, hard-to-maintain test suites.
+    image: 'https://cdn.simpleicons.org/pytest',
+    docs: [
+      { label: 'Martin Fowler – Test Pyramid', url: 'https://martinfowler.com/articles/practical-test-pyramid.html' },
+      { label: 'Testing Trophy (Kent C. Dodds)', url: 'https://kentcdodds.com/blog/the-testing-trophy-and-testing-classifications' },
+      { label: 'Google Testing Blog', url: 'https://testing.googleblog.com/' },
+    ],
+    content: `The **test pyramid**, introduced by Mike Cohn, is a model for allocating test effort across different levels. Inverting it — relying mostly on E2E tests — leads to slow, brittle, hard-to-maintain suites.
 
-Unit tests should cover individual functions and classes in isolation. They run in milliseconds, require no external services, and give precise failure messages. Write them for all business logic, data transformations, validation rules, and utility functions. A good unit test is deterministic: given the same inputs, it always produces the same output.
+## The three levels
 
-Integration tests verify that components work correctly together: your service layer connecting to a real database, your API client talking to a real server, your message consumer processing real events. These are slower than unit tests but faster than E2E tests, and they catch contract mismatches that unit tests with mocks cannot detect.
+| Level | Speed | Cost | Quantity |
+|---|---|---|---|
+| **Unit** | Milliseconds | Cheap | Many |
+| **Integration** | Seconds | Moderate | Some |
+| **E2E** | Minutes | Expensive | Few |
 
-E2E tests verify complete user journeys through the deployed application. Use them sparingly for the most critical paths: login, purchase, core feature workflows. They are the most expensive tests to write, run, and maintain. Every time you add an E2E test, ask whether a lower-level test could give you the same confidence at lower cost.
+## Unit tests
 
-The "testing trophy" (Kent C. Dodds) is a modern variant that elevates integration tests: many unit tests, even more integration tests, few E2E tests, a handful of static checks. This reflects the reality that in frontend and service-oriented systems, integration tests give the best signal-to-cost ratio.`,
+Cover individual functions and classes in isolation. Write them for:
+- Business logic and data transformations
+- Validation rules
+- Utility functions
+
+A good unit test is **deterministic** — given the same inputs, always produces the same output.
+
+## Integration tests
+
+Verify components working correctly together:
+- Service layer connecting to a real database
+- API client talking to a real server
+- Message consumer processing real events
+
+These catch **contract mismatches** that unit tests with mocks cannot detect.
+
+## E2E tests
+
+Use sparingly for the most critical paths:
+- Login / authentication
+- Purchase / checkout flow
+- Core feature workflows
+
+Every time you add an E2E test, ask: *could a lower-level test give the same confidence at lower cost?*
+
+## The Testing Trophy (modern variant)
+
+Kent C. Dodds elevates **integration tests**:
+
+> Static → Unit → **Integration** (most) → E2E (few)
+
+In frontend and service-oriented systems, integration tests give the best signal-to-cost ratio.`,
   },
   {
     slug: 'test-data-management',
@@ -265,15 +887,56 @@ The "testing trophy" (Kent C. Dodds) is a modern variant that elevates integrati
     category: 'test-design',
     description: 'Strategies for creating, managing, and cleaning up test data reliably.',
     tags: ['test-data', 'fixtures', 'factories', 'database'],
-    content: `Test data management is one of the most underrated challenges in automated testing. Poor strategies lead to tests that pass locally but fail in CI, tests that pass in isolation but fail in suites, and test environments that gradually become unusable as data accumulates.
+    image: 'https://cdn.simpleicons.org/postgresql',
+    docs: [
+      { label: 'Fishery (Factory Library)', url: 'https://github.com/thoughtbot/fishery' },
+      { label: 'Playwright Fixtures', url: 'https://playwright.dev/docs/test-fixtures' },
+      { label: 'Faker.js', url: 'https://fakerjs.dev/guide/' },
+    ],
+    content: `Test data management is one of the most underrated challenges in automated testing. Poor strategies lead to tests that pass locally but fail in CI, or fail in suites but pass in isolation.
 
-The golden rule is: tests should own their data. Each test should create the data it needs in a setup step and clean it up in a teardown step. This makes tests independent of each other and of the environment's pre-existing state. Never rely on data that "should be there" — seed it explicitly.
+## The golden rule
 
-Factory functions (or factory libraries like factory-bot, fishery) generate test objects with sensible defaults that can be overridden per test: const user = factory.create('user', { role: 'admin' }). Factories centralise the knowledge of what a valid entity looks like and prevent tests from becoming cluttered with irrelevant field values.
+> **Tests should own their data.** Each test creates what it needs and cleans it up after. Never rely on data that "should be there".
 
-For database-backed tests, use one of these isolation strategies: (1) transactions — wrap each test in a transaction and rollback after, zero cleanup needed; (2) truncation — delete all rows from affected tables before each test, fast but requires careful ordering for foreign keys; (3) separate schema — each test run uses its own schema, allows parallelism but needs more setup.
+## Factory functions
 
-Avoid shared mutable data between tests. If two tests read from the same record and one modifies it, the other will see unexpected state depending on execution order. Even if your tests pass today, parallel execution will expose the coupling. Build data independence as a habit from the start.`,
+\`\`\`ts
+import { factory } from 'fishery'
+
+const userFactory = factory.define<User>(() => ({
+  id: faker.string.uuid(),
+  email: faker.internet.email(),
+  role: 'user',
+}))
+
+// Override per test
+const admin = userFactory.build({ role: 'admin' })
+\`\`\`
+
+Factories centralise the knowledge of what a valid entity looks like.
+
+## Database isolation strategies
+
+| Strategy | How | Speed | Parallelism |
+|---|---|---|---|
+| **Transaction rollback** | Wrap each test in a transaction, rollback after | ✅ Fast | ⚠️ Single worker |
+| **Truncation** | Delete all rows before each test | ✅ Fast | ⚠️ Ordering matters |
+| **Separate schema** | Each test run uses its own schema | ❌ Slower setup | ✅ Full parallelism |
+
+## Unique identifiers for parallel tests
+
+\`\`\`ts
+const email = \`user+\${Date.now()}@example.com\`
+\`\`\`
+
+Prevents two workers from colliding on the same test account.
+
+## Anti-patterns to avoid
+
+- ❌ Shared mutable data between tests
+- ❌ Relying on seeded data from a previous run
+- ❌ Hard-coded IDs that conflict across environments`,
   },
   {
     slug: 'flaky-test-prevention',
@@ -281,15 +944,55 @@ Avoid shared mutable data between tests. If two tests read from the same record 
     category: 'test-design',
     description: 'Identify root causes of test flakiness and apply systematic fixes.',
     tags: ['flaky', 'reliability', 'debugging', 'best-practices'],
-    content: `A flaky test is one that produces different results on the same code without any code changes. Flaky tests are worse than no tests — they erode trust in the test suite, cause developers to re-run failures hoping they pass, and mask real failures in the noise. Eliminating flakiness should be a priority, not a backlog item.
+    image: 'https://cdn.simpleicons.org/playwright',
+    docs: [
+      { label: 'Playwright Retries', url: 'https://playwright.dev/docs/test-retries' },
+      { label: 'Playwright Auto-waiting', url: 'https://playwright.dev/docs/actionability' },
+      { label: 'Pact Contract Testing', url: 'https://docs.pact.io/' },
+    ],
+    content: `A flaky test produces different results on the same code without any changes. **Flaky tests are worse than no tests** — they erode trust, cause re-runs, and mask real failures in the noise.
 
-The most common causes of flakiness in web E2E tests: (1) timing — clicking an element before it is interactive; fix by using proper wait conditions (waitForSelector, expect(locator).toBeVisible()) rather than sleep(). (2) test order dependence — shared state modified by a previous test; fix by isolating test data. (3) animation — asserting on a value mid-animation; fix by disabling animations in test mode.
+## Most common root causes
 
-For network-related flakiness, identify tests that depend on external services or slow APIs. Mock the external service in unit/integration tests and use contract tests (Pact) to verify the mock matches reality. In E2E tests, use the application's loading states (spinners, skeleton screens) as wait conditions rather than fixed timeouts.
+| Cause | Fix |
+|---|---|
+| Clicking before element is interactive | Use \`expect(locator).toBeVisible()\` instead of \`sleep()\` |
+| Test order dependence | Isolate test data — each test owns its state |
+| Asserting during animation | Disable animations in test mode |
+| External service flakiness | Mock the external dependency |
+| Parallel resource collision | Unique data per worker (email+timestamp, separate schema) |
 
-Parallelism flakiness happens when tests share a resource — a port, a user account, a database row — and race conditions emerge. Assign unique resources per test: generate unique email addresses with timestamps, use separate database schemas per worker, and avoid ports by using random available port assignment.
+## Timing: never use sleep()
 
-Build a flake detection process: run the full test suite nightly multiple times and flag any test that fails even once. Use pytest-repeat, jest --testRepeats, or Playwright's --repeat-each flag. Keep a flakiness dashboard. When a test is flagged as flaky, quarantine it (skip in CI, fix in isolation) rather than leaving it to pollute results.`,
+\`\`\`ts
+// ❌ Flaky
+await page.click('#submit')
+await sleep(2000)
+await expect(page.locator('.success')).toBeVisible()
+
+// ✅ Reliable
+await page.click('#submit')
+await expect(page.locator('.success')).toBeVisible()
+// Playwright auto-waits up to the timeout
+\`\`\`
+
+## Network flakiness
+
+Use **contract tests** (Pact) to verify that mocks match reality. In E2E tests, use the application's loading states (spinners, skeleton screens) as wait conditions.
+
+## Flake detection process
+
+\`\`\`bash
+# Playwright — run each test 5 times
+npx playwright test --repeat-each=5
+\`\`\`
+
+Run the full suite nightly multiple times. Flag any test that fails even once. When a test is flagged:
+
+1. **Quarantine** — skip in CI with a tracking issue
+2. **Isolate** — reproduce in isolation
+3. **Fix** — address the root cause
+4. **Re-enable** — restore to the suite`,
   },
 
   // ─── Tools & Misc ─────────────────────────────────────────────────────────
@@ -299,15 +1002,69 @@ Build a flake detection process: run the full test suite nightly multiple times 
     category: 'tools',
     description: 'Key TypeScript concepts that make test code safer and more maintainable.',
     tags: ['typescript', 'types', 'testing', 'developer-tools'],
-    content: `TypeScript adds static type checking to JavaScript, catching a class of bugs at compile time that would otherwise surface at runtime. For test engineers, TypeScript is especially valuable because it documents the shape of API responses, component props, and test fixtures, making tests self-documenting and resilient to backend changes.
+    image: 'https://cdn.simpleicons.org/typescript',
+    docs: [
+      { label: 'TypeScript Handbook', url: 'https://www.typescriptlang.org/docs/handbook/' },
+      { label: 'TS Config Reference', url: 'https://www.typescriptlang.org/tsconfig' },
+      { label: 'TypeScript Playground', url: 'https://www.typescriptlang.org/play' },
+    ],
+    content: `TypeScript adds static type checking to JavaScript — catching bugs at **compile time** that would otherwise surface at runtime.
 
-Start with strict mode enabled in tsconfig.json: "strict": true. This enables strictNullChecks (no accidental undefined access), noImplicitAny (every variable must have a known type), and several other checks. Strict mode catches real bugs — treat every type error as a finding, not a nuisance.
+## Enable strict mode
 
-Use interfaces and types to model your domain: interface User { id: string; email: string; role: 'admin' | 'user' }. When you write a test that creates a user object, TypeScript will catch any missing or misspelled fields immediately. Use Partial<User> for factory functions that fill in defaults, and Required<User> for assertions that need every field present.
+\`\`\`json
+// tsconfig.json
+{
+  "compilerOptions": {
+    "strict": true
+  }
+}
+\`\`\`
 
-Generics make utility functions and test helpers reusable without losing type safety. A typed HTTP client: async function get<T>(url: string): Promise<T> { const res = await fetch(url); return res.json() as T; }. Call it as get<User>('/api/me') and the return type is known throughout the test.
+This enables \`strictNullChecks\`, \`noImplicitAny\`, and several other checks. Treat every type error as a finding.
 
-Use as const for fixture data to preserve literal types: const ROLES = ['admin', 'user', 'guest'] as const; type Role = typeof ROLES[number]. Use satisfies for objects that should conform to a type while preserving the literal values: const config = { timeout: 5000, retries: 3 } satisfies TestConfig. These patterns give you the best of both type safety and type inference.`,
+## Model your domain
+
+\`\`\`ts
+interface User {
+  id: string
+  email: string
+  role: 'admin' | 'user'
+}
+
+// TypeScript catches missing/misspelled fields immediately
+const user: User = { id: '1', email: 'a@b.com', role: 'admin' }
+
+// Useful type utilities
+type PartialUser = Partial<User>      // for factory defaults
+type RequiredUser = Required<User>    // for full assertions
+\`\`\`
+
+## Typed HTTP client
+
+\`\`\`ts
+async function get<T>(url: string): Promise<T> {
+  const res = await fetch(url)
+  return res.json() as T
+}
+
+const user = await get<User>('/api/me')
+// TypeScript knows user.email is a string
+\`\`\`
+
+## Literal types for fixture data
+
+\`\`\`ts
+const ROLES = ['admin', 'user', 'guest'] as const
+type Role = typeof ROLES[number]  // 'admin' | 'user' | 'guest'
+
+const config = {
+  timeout: 5000,
+  retries: 3,
+} satisfies TestConfig
+\`\`\`
+
+\`as const\` preserves literal types; \`satisfies\` validates the shape while keeping type inference.`,
   },
   {
     slug: 'git-for-qa',
@@ -315,15 +1072,59 @@ Use as const for fixture data to preserve literal types: const ROLES = ['admin',
     category: 'tools',
     description: 'Git strategies and commands every QA engineer should know.',
     tags: ['git', 'workflow', 'branching', 'collaboration'],
-    content: `Git proficiency is a core skill for modern QA engineers. Beyond basic commit and push, understanding branching strategies, bisect, and stash will save hours and enable collaboration with development teams more effectively.
+    image: 'https://cdn.simpleicons.org/git',
+    docs: [
+      { label: 'Git Documentation', url: 'https://git-scm.com/doc' },
+      { label: 'Pro Git Book', url: 'https://git-scm.com/book/en/v2' },
+      { label: 'Git Bisect', url: 'https://git-scm.com/docs/git-bisect' },
+    ],
+    content: `Git proficiency is a core skill for modern QA engineers. Beyond basic commit and push, these tools will save hours.
 
-Use feature branches for all test development. The pattern is: git checkout -b test/login-flow, write tests, push to origin, open a pull request. This gives developers visibility into what is being tested, enables code review of test quality, and ensures test code goes through the same merge process as production code. Never commit directly to main.
+## Feature branches for test development
 
-git bisect is one of the most powerful debugging tools available. When you discover that tests started failing at some point in the past, run git bisect start, mark the current commit as bad (git bisect bad), mark the last known good commit (git bisect good abc123), and Git will binary-search the commit history. After each bisect step, run your tests and mark good or bad. You will find the introducing commit in O(log n) steps.
+\`\`\`bash
+git checkout -b test/login-flow
+# write tests, push, open PR
+git push -u origin test/login-flow
+\`\`\`
 
-Use git stash when you need to context-switch mid-task: git stash push -m "wip: flaky test investigation". Your changes are saved, the working tree is clean, you can switch branches, and git stash pop brings your changes back. Use git stash list to see all stashes and git stash drop to clean up.
+Never commit directly to \`main\`. Branches give developers visibility into what is being tested and enable code review of test quality.
 
-Learn interactive rebase (git rebase -i) for cleaning up commits before a PR. Squash several "WIP" commits into one meaningful commit, reorder commits for logical flow, and rewrite commit messages. A clean commit history makes code review easier and git blame more informative. Never rebase commits that have already been pushed to a shared branch.`,
+## git bisect — find the breaking commit
+
+\`\`\`bash
+git bisect start
+git bisect bad                    # current commit is broken
+git bisect good abc123            # last known good commit
+# Git checks out the midpoint
+# Run your tests, then:
+git bisect good   # or git bisect bad
+# Repeat until Git finds the introducing commit
+git bisect reset
+\`\`\`
+
+Finds the culprit in **O(log n)** steps.
+
+## git stash — context switching
+
+\`\`\`bash
+git stash push -m "wip: flaky test investigation"
+# switch branches, do other work...
+git stash pop       # restore your changes
+git stash list      # see all saved stashes
+\`\`\`
+
+## Interactive rebase — clean up before a PR
+
+\`\`\`bash
+git rebase -i HEAD~4
+\`\`\`
+
+- **squash** several "WIP" commits into one meaningful commit
+- **reword** commit messages
+- **reorder** commits for logical flow
+
+> ⚠️ Never rebase commits that have already been pushed to a shared branch.`,
   },
   {
     slug: 'debugging-tools',
@@ -331,15 +1132,59 @@ Learn interactive rebase (git rebase -i) for cleaning up commits before a PR. Sq
     category: 'tools',
     description: 'Systematic approaches and tools for debugging test failures efficiently.',
     tags: ['debugging', 'devtools', 'playwright', 'troubleshooting'],
-    content: `Debugging failed tests is a core QA skill. The key is being systematic rather than guessing. Start by reproducing the failure reliably — a failure you can reproduce is a failure you can fix. Run the test in isolation (not as part of the full suite) to rule out test order dependence before investigating the test itself.
+    image: 'https://cdn.simpleicons.org/googlechrome',
+    docs: [
+      { label: 'Playwright Debugger', url: 'https://playwright.dev/docs/debug' },
+      { label: 'Playwright Trace Viewer', url: 'https://playwright.dev/docs/trace-viewer' },
+      { label: 'Chrome DevTools Docs', url: 'https://developer.chrome.com/docs/devtools/' },
+    ],
+    content: `Debugging failed tests is a core QA skill. The key is being **systematic** rather than guessing.
 
-Playwright's --debug flag opens Playwright Inspector, a step-by-step debugger that shows you the browser state at each action. Use npx playwright test --debug to pause execution and inspect the DOM, check network requests, and evaluate locators interactively. This is far more efficient than adding console.log statements to test code.
+## Rule #1: reproduce first
 
-Browser DevTools are essential for understanding why a selector fails or why a network request returns unexpected data. In Playwright, page.pause() pauses execution and opens DevTools on the attached browser. Use the Console to run document.querySelector() to test your locator manually. Use the Network tab to see request/response payloads.
+Run the test in isolation (not as part of the full suite) to rule out test order dependence before investigating the test itself.
 
-For CI failures that cannot be reproduced locally, use artifacts: screenshots, videos, and trace files. Playwright's built-in trace recording (npx playwright test --trace=on) captures a full timeline of every action, network request, console log, and DOM snapshot. Open the trace with npx playwright show-trace trace.zip to replay the test exactly as it ran in CI.
+\`\`\`bash
+npx playwright test tests/login.spec.ts --headed
+\`\`\`
 
-Add structured logging to your test helpers rather than ad-hoc console.log statements. Log the start and end of major actions with timestamps. When a test fails, the log becomes a timeline of what happened. Tools like Allure Report and Playwright HTML reporter aggregate these into a browsable report that makes failure analysis much faster.`,
+## Playwright Inspector
+
+\`\`\`bash
+npx playwright test --debug
+\`\`\`
+
+Opens a step-by-step debugger — shows the browser state at each action, lets you evaluate locators interactively. Far more efficient than adding \`console.log\` statements.
+
+## Pause in-test
+
+\`\`\`ts
+await page.pause()  // opens DevTools on the attached browser
+\`\`\`
+
+Use the Console to run \`document.querySelector()\` to test your locator manually.
+
+## Trace Viewer (for CI failures)
+
+\`\`\`bash
+# Collect traces on CI
+npx playwright test --trace on-first-retry
+
+# Open locally
+npx playwright show-trace trace.zip
+\`\`\`
+
+Captures a full timeline of every action, network request, console log, and DOM snapshot. Replay the test exactly as it ran in CI.
+
+## Structured logging
+
+Add timestamps to major actions instead of ad-hoc \`console.log\`:
+
+\`\`\`ts
+console.log(\`[\${new Date().toISOString()}] Clicking submit button\`)
+\`\`\`
+
+Tools like **Allure Report** and the **Playwright HTML reporter** aggregate these into a browsable timeline that makes failure analysis much faster.`,
   },
 
   // ─── Security Testing ─────────────────────────────────────────────────────
@@ -349,15 +1194,48 @@ Add structured logging to your test helpers rather than ad-hoc console.log state
     category: 'security',
     description: 'Understanding and testing for the most critical web application security risks.',
     tags: ['owasp', 'security', 'vulnerabilities', 'web'],
-    content: `The OWASP Top 10 is the definitive list of critical web application security risks, updated periodically by security experts. QA engineers do not need to be penetration testers, but understanding these categories and knowing how to include basic checks in regression testing adds significant security value without requiring specialised tooling.
+    image: 'https://cdn.simpleicons.org/owasp',
+    docs: [
+      { label: 'OWASP Top 10', url: 'https://owasp.org/www-project-top-ten/' },
+      { label: 'OWASP Testing Guide', url: 'https://owasp.org/www-project-web-security-testing-guide/' },
+      { label: 'OWASP Cheat Sheet Series', url: 'https://cheatsheetseries.owasp.org/' },
+    ],
+    content: `The **OWASP Top 10** is the definitive list of critical web application security risks. QA engineers don't need to be penetration testers — but including basic checks in regression testing adds significant security value.
 
-A01: Broken Access Control is the most critical risk. Test it by attempting to access resources belonging to another user, by escalating privileges (using a regular user token on admin endpoints), and by accessing authenticated resources without a token. These are functional tests you can add to your existing API test suite without any security tooling.
+## A01: Broken Access Control *(most critical)*
 
-A03: Injection (SQL, command, LDAP) occurs when untrusted data is sent to an interpreter. Test by submitting common injection payloads in every input field: ' OR '1'='1 for SQL injection, <script>alert(1)</script> for XSS. A properly built application will sanitise or escape these; a vulnerable one will reflect them or produce an error that reveals implementation details.
+Test by:
+- Accessing resources belonging to another user
+- Escalating privileges (using a regular user token on admin endpoints)
+- Accessing authenticated resources without any token
 
-A02: Cryptographic Failures means sensitive data is not properly protected in transit or at rest. Verify that all endpoints use HTTPS and that HTTP requests are redirected to HTTPS. Check that tokens and passwords are not exposed in URLs, logs, or error messages. Inspect response headers for security headers: Strict-Transport-Security, Content-Security-Policy, X-Frame-Options.
+These are **functional tests** you can add to your existing API test suite.
 
-A07: Identification and Authentication Failures covers weak password policies, missing brute-force protection, and insecure session management. Test that session tokens are invalidated on logout, that passwords have minimum complexity requirements, and that repeated failed logins trigger a lockout or CAPTCHA. These tests can be included in your regular regression suite.`,
+## A03: Injection
+
+Submit common payloads in every input field:
+
+| Type | Payload |
+|---|---|
+| SQL injection | \`' OR '1'='1\` |
+| XSS | \`<script>alert(1)</script>\` |
+| Command injection | \`; ls -la\` |
+
+A properly built application sanitises or escapes these. A vulnerable one reflects them or reveals implementation details in errors.
+
+## A02: Cryptographic Failures
+
+- ✅ All endpoints use HTTPS (HTTP → redirect)
+- ✅ Tokens/passwords not exposed in URLs or logs
+- ✅ Security headers present: \`Strict-Transport-Security\`, \`Content-Security-Policy\`, \`X-Frame-Options\`
+
+## A07: Identification & Authentication Failures
+
+- Session tokens are invalidated on logout
+- Passwords have minimum complexity requirements
+- Repeated failed logins trigger lockout or CAPTCHA
+
+These checks can be included in your regular regression suite.`,
   },
   {
     slug: 'auth-testing',
@@ -365,15 +1243,51 @@ A07: Identification and Authentication Failures covers weak password policies, m
     category: 'security',
     description: 'Comprehensive testing of auth flows, session management, and access control.',
     tags: ['auth', 'authorization', 'session', 'security', 'rbac'],
-    content: `Authentication (who are you?) and authorization (what are you allowed to do?) are the two security pillars of any multi-user application. Testing them thoroughly is one of the highest-value activities a QA engineer can perform — vulnerabilities here expose all user data and application functionality.
+    image: 'https://cdn.simpleicons.org/jsonwebtokens',
+    docs: [
+      { label: 'OWASP Auth Testing', url: 'https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/04-Authentication_Testing/' },
+      { label: 'OpenID Connect Spec', url: 'https://openid.net/connect/' },
+      { label: 'OAuth 2.0 Security BCP', url: 'https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics' },
+    ],
+    content: `**Authentication** (who are you?) and **authorization** (what are you allowed to do?) are the two security pillars of any multi-user app. Vulnerabilities here expose all user data.
 
-Map out all roles and permissions in your application before writing tests. Create a matrix: rows are roles (guest, user, admin), columns are resources/actions (GET /users, DELETE /users/:id, POST /admin/settings). Every cell in the matrix is a test case: does role X have access to action Y? This matrix-driven approach ensures complete coverage of the permission model.
+## Permission matrix
 
-Test session management explicitly: after logout, verify that the old session token is rejected (returns 401). After password change, verify that all other active sessions are invalidated. Verify that session tokens have a reasonable expiry time and that the application enforces it. These checks prevent session fixation and token theft from being exploitable long-term.
+Map all roles and resources before writing tests:
 
-Test for IDOR (Insecure Direct Object Reference): if a URL contains /orders/12345, change 12345 to another user's order ID and verify that access is denied. IDOR is extremely common and the fix is simple (check ownership server-side), but it is often overlooked in development. Automated IDOR tests are easy to write — create two test users, create resources under each, and verify cross-access is blocked.
+| Role | GET /users | DELETE /users/:id | POST /admin |
+|---|---|---|---|
+| Guest | ❌ | ❌ | ❌ |
+| User | ✅ (own) | ❌ | ❌ |
+| Admin | ✅ (all) | ✅ | ✅ |
 
-For OAuth2/OIDC flows, test the full callback handling: a state parameter mismatch should be rejected (prevents CSRF), a code should only be usable once (prevents replay), and the redirect_uri should be strictly validated against a whitelist (prevents open redirect). These checks require access to the auth flow internals, so coordinate with developers to expose them in a test environment.`,
+Every cell is a test case.
+
+## Session management checklist
+
+- After logout → old session token returns \`401\`
+- After password change → all other active sessions invalidated
+- Session tokens have reasonable expiry time
+- Application enforces the expiry
+
+## IDOR (Insecure Direct Object Reference)
+
+\`\`\`
+GET /orders/12345   ← user A's token
+→ Should return 403 if 12345 belongs to user B
+\`\`\`
+
+Create two test users, create resources under each, then verify cross-access is blocked. IDOR is extremely common and easy to test automatically.
+
+## OAuth2 / OIDC edge cases
+
+| Check | Why |
+|---|---|
+| \`state\` parameter mismatch rejected | Prevents CSRF |
+| Auth code usable only once | Prevents replay attacks |
+| \`redirect_uri\` strictly validated | Prevents open redirect |
+
+Coordinate with developers to expose these flows in a test environment.`,
   },
   {
     slug: 'zap-security-scanning',
@@ -381,14 +1295,59 @@ For OAuth2/OIDC flows, test the full callback handling: a state parameter mismat
     category: 'security',
     description: 'Use OWASP ZAP to add automated security scanning to your CI pipeline.',
     tags: ['zap', 'owasp', 'security', 'scanning', 'ci', 'automation'],
-    content: `OWASP ZAP (Zed Attack Proxy) is a free, open-source security scanner widely used for automated vulnerability detection. Unlike manual penetration testing, ZAP can be run in a CI pipeline on every deployment to catch common vulnerabilities before they reach production.
+    image: 'https://cdn.simpleicons.org/owasp',
+    docs: [
+      { label: 'OWASP ZAP Docs', url: 'https://www.zaproxy.org/docs/' },
+      { label: 'ZAP Docker Images', url: 'https://www.zaproxy.org/docs/docker/about/' },
+      { label: 'ZAP GitHub', url: 'https://github.com/zaproxy/zaproxy' },
+    ],
+    content: `**OWASP ZAP** (Zed Attack Proxy) is a free, open-source security scanner. Run it in CI on every deployment to catch common vulnerabilities before production.
 
-ZAP has two main scanning modes: the baseline scan (passive, read-only) and the full active scan (sends attack payloads). Start with the baseline scan in CI — it spider-crawls the application and flags obvious issues (missing security headers, exposed stack traces, information disclosure) without any risk to data. Use the Docker image: docker run -t owasp/zap2docker-stable zap-baseline.py -t http://your-app.
+## Two scanning modes
 
-Configure ZAP rules to match your application's risk tolerance. Use a .zap/rules.tsv file to ignore false positives and mark specific alerts as informational rather than failures. Focus on High and Medium risk alerts in CI — Low risk alerts are often informational and can be reviewed separately in a security backlog.
+| Mode | Description | Safe for CI? |
+|---|---|---|
+| **Baseline scan** | Passive, read-only spider crawl | ✅ Yes |
+| **Full active scan** | Sends attack payloads | ⚠️ Use carefully |
 
-Integrate ZAP with your existing E2E tests for maximum coverage. Run your Playwright or Selenium tests through a ZAP proxy — ZAP will automatically scan all URLs and forms visited during the test. This is more effective than ZAP's own spider for single-page applications (SPAs) where content is loaded dynamically and URLs are not discoverable by crawling.
+Start with the **baseline scan** — it flags obvious issues (missing headers, exposed stack traces, information disclosure) without any risk to data.
 
-Use ZAP's API to programmatically start scans, wait for completion, and retrieve results in your CI pipeline. The zap-api-scan.py script is designed for API testing — point it at your OpenAPI/Swagger definition and it will generate and send test requests for every endpoint. Export results in XML or JSON for ingestion into your security dashboard.`,
+## Baseline scan via Docker
+
+\`\`\`bash
+docker run -t owasp/zap2docker-stable \
+  zap-baseline.py -t http://your-app -r report.html
+\`\`\`
+
+## Configure rules
+
+\`\`\`tsv
+# .zap/rules.tsv
+10016\tIGNORE\t(Web Browser XSS Protection Not Enabled)
+\`\`\`
+
+Focus on **High** and **Medium** risk alerts in CI. Mark false positives as informational.
+
+## Combine with Playwright tests
+
+Run your Playwright tests **through ZAP as a proxy**:
+
+\`\`\`ts
+// playwright.config.ts
+use: {
+  proxy: { server: 'http://localhost:8080' }
+}
+\`\`\`
+
+ZAP scans all URLs visited during the test — far more effective than its own spider for SPAs where content is dynamically loaded.
+
+## API scanning
+
+\`\`\`bash
+docker run -t owasp/zap2docker-stable \
+  zap-api-scan.py -t openapi.yaml -f openapi
+\`\`\`
+
+Point it at your OpenAPI/Swagger definition to generate and send test requests for every endpoint.`,
   },
 ]

@@ -3,19 +3,40 @@ import { useTranslation } from 'react-i18next'
 import { type Category } from '../data/categories'
 import { TEST_IDS } from '../test-ids'
 
+export type CategoryCardSize = 'sm' | 'md' | 'lg'
+
 type CategoryCardProps = {
   category: Category
   noteCount: number
+  size?: CategoryCardSize
 }
 
-function CategoryCard({ category, noteCount }: CategoryCardProps) {
+const sizeStyles: Record<CategoryCardSize, string> = {
+  sm: 'p-3 text-sm',
+  md: 'p-4 text-base',
+  lg: 'p-6 text-lg',
+}
+
+const emojiSizeStyles: Record<CategoryCardSize, string> = {
+  sm: 'text-xl mb-2',
+  md: 'text-2xl mb-2',
+  lg: 'text-3xl mb-3',
+}
+
+const titleSizeStyles: Record<CategoryCardSize, string> = {
+  sm: 'text-base',
+  md: 'text-lg',
+  lg: 'text-xl',
+}
+
+function CategoryCard({ category, noteCount, size = 'lg' }: CategoryCardProps) {
   const { t } = useTranslation()
 
   return (
     <Link to={`/category/${category.slug}`} data-testid={TEST_IDS.categoryCard.root}>
-      <div className="bg-gray-800 p-6 rounded-lg hover:bg-gray-700 transition-colors cursor-pointer h-full">
-        <div className="text-3xl mb-3">{category.emoji}</div>
-        <h2 className="text-xl font-bold text-white mb-1" data-testid={TEST_IDS.categoryCard.title}>
+      <div className={`bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors cursor-pointer h-full ${sizeStyles[size]}`}>
+        <div className={emojiSizeStyles[size]}>{category.emoji}</div>
+        <h2 className={`font-bold text-white mb-1 ${titleSizeStyles[size]}`} data-testid={TEST_IDS.categoryCard.title}>
           {t(`data.categories.${category.slug}.title`, { defaultValue: category.title })}
         </h2>
         <p className="text-gray-400 text-sm mb-3" data-testid={TEST_IDS.categoryCard.description}>
